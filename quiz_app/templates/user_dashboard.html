@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}
+user dashboard
+{% endblock %}
+{% block content %}
+    {% with messages = get_flashed_messages() %}  
+        {% if messages %}  
+            {% for message in messages %}  
+                    <p>{{ message }}</p>  
+            {% endfor %}  
+        {% endif %}  
+    {% endwith %}  
+    <a href="{{url_for('user_dashboard_quizes')}}">browse quizes</a> <br>
+    <a href="{{url_for('user_dashboard_quiz_view', quiz_id=1)}}">browse quizes one by one</a> <br>
+{% endblock %}

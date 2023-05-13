@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block title %}
+New quiz 
+{% endblock %}
+{% block content %}
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}  
+            {% if messages %}  
+                {% for category, message in messages %}  
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}  
+            {% endif %}  
+        {% endwith %}  
+    </div>
+    <form method="POST" action="">
+    {{ form.csrf_token }}
+    <fieldset class="form-group">
+        <legend>Quiz Maker</legend>
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }} {{ form.title(class="form-control") }} 
+            {% for error in form.title.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.question.label(class="form-label") }} {{ form.question(class="form-control") }} 
+            {% for error in form.question.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div id="answers" class="mb-3">
+            {{form.answer1.label(class="form-label")}} {{form.answer1(class="form-control")}}
+            {{form.correct1.label(class="form-check-label")}} {{form.correct1(class="form-check-input")}}
+            <br>
+            {{form.answer2.label(class="form-label")}} {{form.answer2(class="form-control")}}
+            {{form.correct2.label(class="form-check-label")}} {{form.correct2(class="form-check-input")}}
+            <br>
+            {{form.answer3.label(class="form-label")}} {{form.answer3(class="form-control")}}
+            {{form.correct3.label(class="form-check-label")}} {{form.correct3(class="form-check-input")}}
+            <br>
+            {{form.answer4.label(class="form-label")}} {{form.answer4(class="form-control")}}
+            {{form.correct4.label(class="form-check-label")}} {{form.correct4(class="form-check-input")}}
+            <br>
+        </div>
+        <div class="mb-3 form-check">
+            {{ form.active(class="form-check-input") }} {{ form.active.label(class="form-check-label") }} 
+            {% for error in form.active.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.category.label(class="form-label") }} {{ form.category(class="form-control")}} 
+            {% for error in form.category.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {{ form.submit(class="btn btn-primary")}}
+    </fieldset>
+    </form>
+
+{% endblock %}

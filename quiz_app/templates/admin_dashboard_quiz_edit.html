@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block title %}
+New quiz 
+{% endblock %}
+{% block content %}
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}  
+            {% if messages %}  
+                {% for category, message in messages %}  
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}  
+            {% endif %}  
+        {% endwith %}  
+    </div>
+    <form method="POST" action="">
+        {{ form.csrf_token }}
+        <fieldset class="form-group">
+            <legend>Quiz maker</legend>
+                <div>
+                    {{ form.title.label }} {{ form.title}} <br>
+                    {% for error in form.title.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                </div>
+                <div>
+                    {{ form.question.label }} {{ form.question }} <br>
+                    {% for error in form.question.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                </div>
+                    
+                <div id="answers">
+                    {{form.answer1.label}} {{form.answer1}}
+                    {{form.correct1.label}} {{form.correct1}}
+                    <br>
+                    {{form.answer2.label}} {{form.answer2}}
+                    {{form.correct2.label}} {{form.correct2}}
+                    <br>
+                    {{form.answer3.label}} {{form.answer3}}
+                    {{form.correct3.label}} {{form.correct3}}
+                    <br>
+                    {{form.answer4.label}} {{form.answer4}}
+                    {{form.correct4.label}} {{form.correct4}}
+                    <br>
+                </div>
+
+                <div>
+                    {{ form.active.label }} {{ form.active }} <br>
+                    {% for error in form.active.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    {{ form.category.label }} {{ form.category}} <br>
+                    {% for error in form.category.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                </div>
+                {{ form.submit(class="btn btn-primary", value='Edit')}}
+        </fieldset>
+    </form>
+{% endblock %}

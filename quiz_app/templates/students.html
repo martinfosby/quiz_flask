@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}
+Students
+{% endblock %}
+{% block content %}
+    <h1>students are:</h1>
+    {% if students %}
+        <table>
+            {% for student in students%}
+            <tr>
+                <td>{{ student }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endblock %}

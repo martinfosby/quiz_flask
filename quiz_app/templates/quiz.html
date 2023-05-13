@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}
+quiz
+{% endblock %}
+{% block content %}
+    {% with messages = get_flashed_messages() %}  
+        {% if messages %}  
+            {% for message in messages %}  
+                    <p>{{ message }}</p>  
+            {% endfor %}  
+        {% endif %}  
+    {% endwith %}  
+    {% if questions %}
+        {% for question in questions %}
+        <h2>{{ question.question }}</h2>
+        <ul>
+            {% for answer in question.answers %}
+            <li><input type="radio" name="question{{ question.id }}" value="{{ answer.text }}"> {{ answer.text }}</li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+        <button onclick="submitQuiz()">Submit</button>
+
+    {% endif %}
+{% endblock %}

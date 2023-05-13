@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}
+user register
+{% endblock %}
+{% block content %}
+    {% with messages = get_flashed_messages() %}  
+        {% if messages %}  
+            {% for message in messages %}  
+                    <p>{{ message }}</p>  
+            {% endfor %}  
+        {% endif %}  
+    {% endwith %}  
+
+    <form method="POST" action="" class="register-form">
+    {{ form.csrf_token() }}
+        <fieldset class="form-group">
+            <legend class="form-legend">User Register</legend>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="username" class="form-label">Username</label>
+                    {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="password" class="form-label">Password</label>
+                    {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm your password") }}
+                </div>
+            </div>
+            {% for field, errors in form.errors.items() %}
+                <div class="alert alert-danger">{{ ', '.join(errors) }}</div>
+            {% endfor %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.submit(class="btn btn-primary btn-block", value="Register") }}
+                </div>
+            </div>
+        </fieldset>
+    </form>
+
+{% endblock %}

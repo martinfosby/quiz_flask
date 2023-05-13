@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block title %}
+user dashboard
+{% endblock %}
+{% block content %}
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}  
+            {% if messages %}  
+                {% for category, message in messages %}  
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}  
+            {% endif %}  
+        {% endwith %}  
+    </div>
+    <div class="container">
+        <h1>Quiz Dashboard</h1>
+        <hr>
+        <div class="row">
+            <div class="col-md-4">
+                <a href="{{ url_for('admin_dashboard_quiz') }}" class="btn btn-primary btn-block mb-3">Browse Quizzes</a><br>
+                <a href="{{ url_for('admin_dashboard_quiz_new') }}" class="btn btn-success btn-block mb-3">Create New Quiz</a><br>
+                <a href="{{ url_for('admin_dashboard_users') }}" class="btn btn-dark btn-block mb-3">Browse Users</a>
+            </div>
+            <div class="col-md-8">
+                <h2>Existing Quizzes</h2>
+                {% for quiz in quizes %}
+                    <div class="card mb-3" id="quiz-{{ loop.index0 }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ quiz[1] }}</h5>
+                            <p class="card-text">{{ quiz[2] }}</p>
+                            <a href="{{ url_for('admin_dashboard_quiz_edit', id=quiz[0]) }}" class="btn btn-primary">Edit Quiz</a>
+                            <a href="{{ url_for('admin_dashboard_quiz_delete', quiz_id=quiz[0]) }}" class="btn btn-danger">Delete Quiz</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
