@@ -1,4 +1,3 @@
-
 from flask import render_template
 from flask import request
 from flask import session
@@ -20,6 +19,7 @@ from .user_register import *
 from .user_has_quiz import *
 from .user_has_answer import *
 from .mysql_cursor import *
+from .user import User
 
 # database pool connection
 
@@ -44,7 +44,6 @@ def user_register():
         # save user information to database
         username = form.username.data
         password = form.password.data
-        from .user import User
         if User.register(username, password):
             flash(f'Successfully created user {username}', category='success')
         else:
