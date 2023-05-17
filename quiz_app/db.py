@@ -4,7 +4,7 @@ import mysql.connector
 
 config = {
 
-    'user': 'user',
+    'user': 'root',
     'password': 'test',
     'host': 'localhost',
     'database': 'quiz_web_app',

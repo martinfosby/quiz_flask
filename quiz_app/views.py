@@ -25,6 +25,7 @@ from .mysql_cursor import *
 from .db import *
 import werkzeug
 import random
+from utils import *
 # app.secret_key = secrets.token_urlsafe(16)
 app.permanent_session_lifetime = timedelta(days=7)
 
@@ -47,15 +48,24 @@ def register() -> 'html':
         is_admin = form.is_admin.data
         username = form.username.data
         email = form.email.data
-        password_hash = werkzeug.generate_password_hash(form.password.data)
-        first_name = form.first_name.data
-        last_name = form.last_name.data
-        db_exec('''INSERT INTO user (is_admin, username, email, password_hash, first_name, last_name) 
-        VALUES (%s, %s, %s, %s, %s, %s)''', 
-        (is_admin, username, email, password_hash, first_name, last_name))
+        password_hash = werkzeug.security.generate_password_hash(form.password.data)
+        if is_admin:
+            first_name = form.first_name.data
+            last_name = form.last_name.data
+            db_exec('''INSERT INTO user (is_admin, username, email, password_hash, first_name, last_name) 
+            VALUES (%s, %s, %s, %s, %s, %s)''', 
+            (is_admin, username, email, password_hash, first_name, last_name))
+
+            flash(f'Successfully created admin {username}', category='success')
+        else:
+            db_exec('''INSERT INTO user (is_admin, username, email, password_hash) 
+            VALUES (%s, %s, %s, %s)''', 
+            (is_admin, username, email, password_hash))
+
+            flash(f'Successfully created user {username}', category='success')
+
 
         # if ar:
-        #     flash(f'Successfully created admin {username}', category='success')
         # else:
         #     flash(f'admin already exists {username}', category='failed')
         return redirect(url_for('login'))
@@ -66,62 +76,41 @@ def register() -> 'html':
 
 @app.route('/logout', methods=["GET", "POST"])
 def logout() -> 'html':
-    if 'username' in session:
+    if session['logged_in']:
         username = session.pop('username')
-        admin = session.pop('admin')
-        flash(f'logged out as {username} admin {admin}', 'info')
+        flash(f'logged out as {username}', 'info')
         return redirect(url_for('home'))
     else:
         flash('not logged in', 'info')
-        return redirect(url_for('home'))
+        return redirect(url_for('login'))
 
 
 
 @app.route('/home')
 @app.route("/", methods=('GET', 'POST'))
 def home():
-    if 'username' in session and 'admin' in session:
-        if session['admin'] == False:
-            return redirect(url_for('user_dashboard'))
-        elif session['admin'] == True:
-            return redirect(url_for('admin_dashboard'))
+    if session['logged_in']:
+        return redirect(url_for('user_dashboard'))
     else:
         return redirect(url_for('login'))
     # return render_template('home.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if not 'username' in session:
+    if not session['logged_in']:
         form = LoginForm()
         if form.validate_on_submit():
             username = form.username.data
             password = form.password.data
-            # Check if the user is an admin
-            if usertype == 'admin':
-                # Redirect to the admin dashboard
-                with AdminRegister() as ar:
-                    adm = ar.get_admin(username)
-                    if adm:
-                        session['username'] = username
-                        session['admin'] = True
-                        session['id'] = adm[0]
-                        flash(f'Successfully logged in as admin {username}', category='success')
-                        return redirect(url_for('admin_dashboard'))
-                    else:
-                        flash(f'admin does not exist {username}', category='error')
-                        return redirect(url_for('login'))
+            usr = db_query_single("SELECT * FROM user WHERE username=%s", [username])
+            if usr:
+                session['username'] = username
+                session['id'] = usr[0]
+                flash(f'Successfully logged in as user {username}', category='success')
+                return redirect(url_for('user_dashboard'))
             else:
-                with UserRegister() as ur:
-                    usr = ur.get_user(username)
-                    if usr:
-                        session['username'] = username
-                        session['admin'] = False
-                        session['id'] = usr[0]
-                        flash(f'Successfully logged in as user {username}', category='success')
-                        return redirect(url_for('user_dashboard'))
-                    else:
-                        flash(f'user does not exist {username}', category='error')
-                        return redirect(url_for('login'))
+                flash(f'user does not exist {username}', category='error')
+                return redirect(url_for('login'))
         return render_template('login.html', form=form)
     else:
         flash(f"Already logged in as {session['username']}", category='success')

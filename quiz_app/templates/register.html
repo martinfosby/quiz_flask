@@ -89,12 +89,18 @@ register
                     lastNameField.style.display = "";
                     firstNameLabel.style.display = "";
                     lastNameLabel.style.display = "";
+
+                    firstNameField.required = true
+                    lastNameField.required = true
                 } else {
                     // Hide the first and last name fields and labels if checkbox is unchecked
                     firstNameField.style.display = "none";
                     lastNameField.style.display = "none";
                     firstNameLabel.style.display = "none";
                     lastNameLabel.style.display = "none";
+
+                    firstNameField.required = false
+                    lastNameField.required = false
                 }
             });
         });
