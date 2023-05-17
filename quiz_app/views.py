@@ -19,10 +19,11 @@ from .user_register import *
 from .user_has_quiz import *
 from .user_has_answer import *
 from .mysql_cursor import *
-from .user import User
+# from .user import User
 
-# database pool connection
 
+from .db import *
+import werkzeug
 import random
 # app.secret_key = secrets.token_urlsafe(16)
 app.permanent_session_lifetime = timedelta(days=7)
@@ -37,53 +38,28 @@ app.permanent_session_lifetime = timedelta(days=7)
 #     }
 
 
-@app.route('/register/user', methods=['GET', 'POST'])
-def user_register():
-    form = UserRegistrationForm()
-    if form.validate_on_submit():
-        # save user information to database
-        username = form.username.data
-        password = form.password.data
-        if User.register(username, password):
-            flash(f'Successfully created user {username}', category='success')
-        else:
-            flash(f'user already exists {username}', category='failed')
-            return redirect(url_for('user_register'))
 
-        return redirect(url_for('login'))
-    return render_template('user_register.html', form=form)
-
-@app.route('/register/admin', methods=['GET', 'POST'])
-def admin_register():
-    form = AdminRegistrationForm()
-    if form.validate_on_submit():
-        with AdminRegister() as ar:
-            username = form.username.data
-            password = form.password.data
-            first_name = form.first_name.data
-            last_name = form.last_name.data
-            ar.create_admin(username=username, password=password, first_name=first_name, last_name=last_name)
-            if ar:
-                flash(f'Successfully created admin {username}', category='success')
-            else:
-                flash(f'admin already exists {username}', category='failed')
-        return redirect(url_for('login'))
-        # check if admin key is valid
-        # if form.admin_key.data == 'myadminkey':
-        #     # save admin information to database
-        #     return redirect(url_for('login'))
-        # else:
-        #     form.admin_key.errors.append('Invalid admin key')
-    return render_template('admin_register.html', form=form)
 
 @app.route('/register', methods=["GET", "POST"])
 def register() -> 'html':
-    form = UserTypeForm()
+    form = RegistrationForm()
     if form.validate_on_submit():
-        if form.usertype.data == 'admin':
-            return redirect(url_for('admin_register'))
-        else:
-            return redirect(url_for('user_register'))
+        is_admin = form.is_admin.data
+        username = form.username.data
+        email = form.email.data
+        password_hash = werkzeug.generate_password_hash(form.password.data)
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+        db_exec('''INSERT INTO user (is_admin, username, email, password_hash, first_name, last_name) 
+        VALUES (%s, %s, %s, %s, %s, %s)''', 
+        (is_admin, username, email, password_hash, first_name, last_name))
+
+        # if ar:
+        #     flash(f'Successfully created admin {username}', category='success')
+        # else:
+        #     flash(f'admin already exists {username}', category='failed')
+        return redirect(url_for('login'))
+        
     return render_template('register.html', form=form)
 
 
@@ -118,7 +94,6 @@ def login():
     if not 'username' in session:
         form = LoginForm()
         if form.validate_on_submit():
-            usertype = form.usertype.data
             username = form.username.data
             password = form.password.data
             # Check if the user is an admin

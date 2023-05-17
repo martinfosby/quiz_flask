@@ -1,6 +1,6 @@
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, PasswordField, BooleanField, TextAreaField, FieldList, FormField, RadioField, SelectMultipleField
+from wtforms import StringField, SubmitField, SelectField, PasswordField, BooleanField, TextAreaField, FieldList, FormField, RadioField, SelectMultipleField, EmailField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 user_length = 2
@@ -16,24 +16,18 @@ class UserTypeForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    usertype = SelectField(label=u'select user type', choices=['user', 'admin'])
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Log In')
 
-class UserRegistrationForm(FlaskForm):
+class RegistrationForm(FlaskForm):
+    is_admin = BooleanField('Is admin', default=False)
     username = StringField('Username', validators=[DataRequired(), Length(min=user_length, max=20)])
+    email = EmailField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=pass_length, max=20)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Register')
-
-class AdminRegistrationForm(FlaskForm):
-    first_name = StringField(label='first name', validators=[DataRequired()])
-    last_name = StringField(label='last name', validators=[DataRequired()])
-    username = StringField('Username', validators=[DataRequired(), Length(min=user_length, max=20)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=pass_length, max=20)])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    # admin_key = StringField('Admin Key', validators=[DataRequired(), Length(min=6, max=20)])
+    first_name = StringField(label='First name', validators=[DataRequired()])
+    last_name = StringField(label='Last name', validators=[DataRequired()])
     submit = SubmitField('Register')
 
 # class AnswerForm(FlaskForm):

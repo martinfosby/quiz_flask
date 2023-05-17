@@ -1,17 +1,103 @@
 {% extends "layout.html" %}
 {% block title %}
 register
-
 {% endblock %}
 {% block content %}
-  <form method="POST" action="">
-    {{ form.csrf_token }}
+    <form id="register-form" method="POST" action="" class="register-form">
+        {{ form.csrf_token() }}
+        <fieldset class="form-group">
+            <legend class="form-legend">Register</legend>
 
-    <fieldset class="form-group">
-      <legend>Register</legend>
-      {{ form.usertype.label }} {{ form.usertype }}<br>
-    </fieldset>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="is_admin" class="form-label">is admin</label>
+                    {{ form.is_admin(class="form-checkbox", id="is_admin") }}
+                </div>
+            </div>
 
-    {{ form.submit(class="btn btn-primary") }}
-  </form>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="username" class="form-label">Username</label>
+                    {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    {{ form.email(class="form-control", id="email", placeholder="Enter your email") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="password" class="form-label">Password</label>
+                    {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm your password") }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="first_name" class="form-label" id="first_name_label">First Name</label>
+                    {{ form.first_name(class="form-control", id="first_name", placeholder="Enter your first name") }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="last_name" class="form-label" id="last_name_label">Last Name</label>
+                    {{ form.last_name(class="form-control", id="last_name", placeholder="Enter your last name") }}
+                </div>
+            </div>
+
+            {% for field, errors in form.errors.items() %}
+                <div class="alert alert-danger">{{ ', '.join(errors) }}</div>
+            {% endfor %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    {{ form.submit(class="btn btn-primary btn-block", value="Register") }}
+                </div>
+            </div>
+        </fieldset>
+    </form>
 {% endblock %}
+
+{% block scripts %}
+  <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var form = document.getElementById("register-form");
+            var isAdminCheckbox = form.querySelector("input[name='is_admin']");
+            var firstNameLabel = document.getElementById("first_name_label");
+            var lastNameLabel = document.getElementById("last_name_label");
+
+            // Initially hide the first and last name fields and labels
+            form.querySelector("input[name='first_name']").style.display = "none";
+            form.querySelector("input[name='last_name']").style.display = "none";
+            firstNameLabel.style.display = "none";
+            lastNameLabel.style.display = "none";
+
+            // Listen for the checkbox change event
+            isAdminCheckbox.addEventListener("change", function() {
+                var firstNameField = form.querySelector("input[name='first_name']");
+                var lastNameField = form.querySelector("input[name='last_name']");
+                if (isAdminCheckbox.checked) {
+                    // Show the first and last name fields and labels if checkbox is checked
+                    firstNameField.style.display = "";
+                    lastNameField.style.display = "";
+                    firstNameLabel.style.display = "";
+                    lastNameLabel.style.display = "";
+                } else {
+                    // Hide the first and last name fields and labels if checkbox is unchecked
+                    firstNameField.style.display = "none";
+                    lastNameField.style.display = "none";
+                    firstNameLabel.style.display = "none";
+                    lastNameLabel.style.display = "none";
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
