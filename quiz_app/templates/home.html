@@ -10,23 +10,8 @@ Home
             {% endfor %}  
         {% endif %}  
     {% endwith %}  
-    <!-- <form method="POST" action="">
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                {{ form.csrf_token() }}
-                <label for=""> {{ form.usertype.label }}</label>
-                {{ form.usertype }}
-                {% for field, errors in form.errors.items() %}
-                    <small class="form-text text-muted ">
-                        {{ ', '.join(errors) }}
-                    </small>
-                {% endfor %}
-            </div>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-primary")}}
-            </div>
-        </div>
-    </form> -->
-    <p>Home page</p>
+    <a href="{{url_for('quizes.listquizes')}}">browse quizes</a> <br>
+    <a href="{{url_for('quizes.quiz_view', quiz_id=1)}}">browse quizes one by one</a> <br>
+    <a href="{{url_for('users.listusers')}}">browse users</a>
 {% endblock %}
 

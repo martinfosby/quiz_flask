@@ -1,5 +1,5 @@
 from flask import session, redirect, request
-from db import db_query_single
+from .db import db_query_single
 
 def get_user_id():
     if session['logged_in']:

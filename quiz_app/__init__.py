@@ -1,16 +1,11 @@
-#!/usr/bin/python
-import sys
-import logging
-import flask
+from flask import Flask
 from flask_wtf.csrf import CSRFProtect
+from .users import users
+from .quizes import quizes
 
-logging.basicConfig(stream=sys.stderr)
-logging.basicConfig(filename="app.log", level=logging.DEBUG)
-
-sys.path.insert(0,"/stud/mfo054/public_html/flask_app/")
-sys.path.insert(1,"/stud/mfo054/public_html/flask_app/flask_app/")
-
-app = flask.Flask(__name__)
+app = Flask(__name__)
+app.register_blueprint(users)
+app.register_blueprint(quizes)
 
 app.config['SECRET_KEY'] = 'my_secret_key'
 csrf = CSRFProtect(app)
