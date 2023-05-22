@@ -58,7 +58,7 @@ def register():
 
             flash(f'Successfully created user {username}', category='success')
 
-        return redirect(url_for('login'))
+        return redirect(url_for('users.login'))
         
     return render_template('register.html', form=form)
 
@@ -67,13 +67,18 @@ def register():
 @users.route('/logout', methods=["GET", "POST"])
 def logout():
     if session.get('logged_in'):
-        username = session.pop('username')
-        session.clear() # clear the rest
-        flash(f'logged out as {username}', 'info')
+        if session.get('is_admin'):
+            username = session.pop('username')
+            is_admin = session.pop('is_admin')
+            session.clear() # clear the rest
+            if is_admin:
+                flash(f'logged out as admin {username}', 'info')
+            else:
+                flash(f'logged out as user {username}', 'info')
         return redirect(url_for('home'))
     else:
         flash('not logged in', 'info')
-        return redirect(url_for('login'))
+        return redirect(url_for('users.login'))
 
 
 
@@ -81,44 +86,56 @@ def logout():
 @users.route('/login', methods=['GET', 'POST'])
 def login():
     if not session.get('logged_in'):
-        form = LoginForm()
-        if form.validate_on_submit():
-            username = form.username.data
-            password = form.password.data
-            usr = db_query_single("SELECT * FROM user WHERE username=%s", [username])
-            if usr:
-                user_id, is_admin, username, email, password_hash, first_name, last_name, created_at = usr
-                if werkzeug.security.check_password_hash(password_hash, password):
-                    session['id'] = user_id
-                    session['is_admin'] = is_admin
-                    session['username'] = username
-                    session['email'] = email
-                    session['password_hash'] = password_hash
-                    session['first_name'] = first_name
-                    session['last_name'] = last_name
-                    session['created_at'] = created_at
-                    session['logged_in'] = True
-                    if is_admin:
-                        flash(f'Successfully logged in as admin {username}', category='success')
+        user_type_form = UserTypeForm()
+        if user_type_form.validate_on_submit():
+            if user_type_form.usertype.data == 'admin':
+                form = LoginForm()
+                if form.validate_on_submit():
+                    username = form.username.data
+                    password = form.password.data
+                    usr = db_query_single("SELECT * FROM administrator WHERE username=%s", [username])
+                    if usr:
+                        user_id, username, email, password_hash, first_name, last_name, created_at = usr
+                        if werkzeug.security.check_password_hash(password_hash, password):
+                            session['id'] = user_id
+                            session['username'] = username
+                            session['email'] = email
+                            session['password_hash'] = password_hash
+                            session['first_name'] = first_name
+                            session['last_name'] = last_name
+                            session['created_at'] = created_at
+                            session['logged_in'] = True
+                            session['is_admin'] = True
+                            flash(f'Successfully logged in as admin {username}', category='success')
+                            return redirect(url_for('home'))
+                        else:
+                            flash('Incorrect password', category='error')
+                            return redirect(url_for('users.login'))
                     else:
-                        flash(f'Successfully logged in as user {username}', category='success')
-                    return redirect(url_for('user_dashboard', username=username))
-                else:
-                    flash('Incorrect password', category='error')
-                    return redirect(url_for('login'))
+                        flash(f'user does not exist {username}', category='error')
+                        return redirect(url_for('users.login'))
+                return render_template('login.html', form=form)
             else:
-                flash(f'user does not exist {username}', category='error')
-                return redirect(url_for('login'))
-        return render_template('login.html', form=form)
+                session['logged_in'] = True
+                session['is_admin'] = False
+                session['usertype'] = user_type_form.usertype.data
+                session['is_anonymous'] = True
+                return redirect(url_for('home'))
+        else:
+            return render_template('user_type.html', user_type_form=user_type_form)
     else:
-        flash(f"Already logged in as {session['username']}", category='success')
+        if session.get('is_admin'):
+            flash(f"Already logged in as admin {session['username']}", category='success')
+            return redirect(url_for('home'))
+        else:
+            flash(f"Already logged in as anonymous user", category='success')
         return redirect(url_for('home'))
 
 
 @users.route('/<username>', methods=['POST', 'GET'])
 def dashboard(username):
     if not session.get('logged_in') or session.get('username') != username:
-        return redirect(url_for('login'))
+        return redirect(url_for('users.login'))
     else:
         quizes = db_query_rows("SELECT * FROM quiz")
         return render_template('user_dashboard.html', quizes=quizes)

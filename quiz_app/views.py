@@ -46,7 +46,8 @@ def home():
     if session.get('logged_in'):
         return render_template('home.html')
     else:
-        return redirect(url_for('login'))
+        flash('Not logged in', category='error')
+        return redirect(url_for('users.login'))
 
 
 

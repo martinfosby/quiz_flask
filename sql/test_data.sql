@@ -2,15 +2,7 @@
 
 
 
-INSERT INTO administrator (username, password_hash, first_name, last_name)
-VALUES 
-    ('johndoe', 'abcd', 'John', 'Doe'),
-    ('janedoe', 'efgh', 'Jane', 'Doe'),
-    ('bobsmith', 'ijkl', 'Bob', 'Smith'),
-    ('sarajones', 'mnop', 'Sara', 'Jones'),
-    ('davidbrown', 'qrst', 'David', 'Brown');
-
-INSERT INTO user (username, password_hash)
+INSERT INTO user (username, password_hash, first_name, last_name)
 VALUES
     ('amandasmith', 'password678'),
     ('michaeljones', 'password901'),
@@ -19,10 +11,10 @@ VALUES
     ('oliviawilson', 'password890');
 
 
-INSERT INTO quiz (title, question, active, category, administrator_id)
+INSERT INTO quiz (title, question, active, category, type, comment)
 VALUES 
-    ('Science Quiz', 'What is the chemical symbol for gold?', 1, 'Chemistry', 1),
-    ('History Quiz', 'Who was the first president of the United States?', 1, 'History', 1),
+    ('Science Quiz', 'What is the chemical symbol for gold?', 1, 'Chemistry', 'multiple' ),
+    ('History Quiz', 'Who was the first president of the United States?', 1, 'single'),
     ('Geography Quiz', 'What is the capital city of Australia?', 0, 'Geography', 2),
     ('Literature Quiz', 'Who wrote the novel "To Kill a Mockingbird"?', 1, 'Literature', 1),
     ('Math Quiz', 'What is the value of pi?', 1, 'Mathematics', 3),
@@ -33,7 +25,7 @@ VALUES
     ('Food Quiz', 'What is the national dish of Italy?', 0, 'Cuisine', 1),
     ('Movie Quiz', 'Who directed the movie "Pulp Fiction"?', 1, 'Movies', 2);
 
-INSERT INTO answer (answer, correct, quiz_id)
+INSERT INTO answer (answer, passed, quiz_id)
 VALUES 
   ('Hydrogen',     1, 1), ('Helium',   0, 1), ('Oxygen',   0, 1), ('Carbon', 0, 1), 
   ('George Washington', 1, 2), ('Thomas Jefferson', 0, 2), ('John Adams', 0, 2), ('Benjamin Franklin', 0, 2),

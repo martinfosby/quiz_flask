@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}
-login
-
+user type
 {% endblock %}
 {% block content %}
     <div id="flash-messages">
@@ -16,29 +15,24 @@ login
         {% endwith %}  
     </div>
     <form method="POST" action="" class="login-form">
-        {{ form.csrf_token() }}
+        {{ user_type_form.csrf_token() }}
         <fieldset class="form-group">
             <legend class="form-legend">Log in</legend>
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    <label for="username" class="form-label">Username</label>
-                    {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                    <label for="usertype" class="form-label">usertype</label>
+                    {{ user_type_form.usertype(class="form-control", id="usertype") }}
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="password" class="form-label">Password</label>
-                    {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
-                </div>
-            </div>
-            {% for field, errors in form.errors.items() %}
+            {% for field, errors in user_type_form.errors.items() %}
                 <div class="alert alert-danger">{{ ', '.join(errors) }}</div>
             {% endfor %}
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    {{ form.submit(class="btn btn-primary btn-block", value="Log in") }}
+                    {{ user_type_form.submit(class="btn btn-primary btn-block", value="Select user") }}
                 </div>
             </div>
         </fieldset>
     </form>
+
 {% endblock %}

@@ -17,7 +17,7 @@ import random
 quizes = Blueprint('quizes', __name__, url_prefix='/quizes')
 
 @quizes.route('/quiz', methods=['GET'])
-def admin_dashboard_quiz():
+def quiz():
     with MySqlCursor() as mc:
         myselect = mc.execute_select(
             '''
@@ -51,8 +51,40 @@ def admin_dashboard_quiz():
     if request.method == 'GET':
         return render_template('admin_dashboard_quiz.html', quiz_answers=quiz_answers)
 
+@quizes.route('/create', methods=['POST', 'GET'])
+def create_quiz():
+    form = QuizForm()
+    if form.validate_on_submit():
+        # plug inn quez in database
+        username = session['username']
+        with AdminRegister() as ar:
+            admin = ar.get_admin(username)
+            with QuizRegister() as qr:
+                qr.create_quiz(
+                    title=form.title.data, 
+                    question=form.question.data, 
+                    active=form.active.data, 
+                    category=form.category.data,
+                    admin_id=admin[0]
+                    )
+                quiz = qr.get_all_quiz()
+                quiz_id = quiz[-1][0] # get last quiz
+            with AnswerRegister() as ans_reg:
+                answers = [
+                    {'answer': form.answer1.data, 'correct' : form.correct1.data},
+                    {'answer': form.answer2.data, 'correct' : form.correct2.data},
+                    {'answer': form.answer3.data, 'correct' : form.correct3.data},
+                    {'answer': form.answer4.data, 'correct' : form.correct4.data}
+                ]
+                for answer in answers:
+                    ans_reg.create_answer_for_quiz(answer['answer'], answer['correct'], quiz_id)
+
+        flash('successfully created quiz', 'success')
+        return redirect(url_for('home'))
+    return render_template('admin_dashboard_quiz_new.html', form=form)
+
 @quizes.route('/edit/<int:id>', methods=['POST', 'GET'])
-def admin_dashboard_quiz_edit(id):
+def edit_quiz(id):
     form = QuizForm()
     if form.validate_on_submit():
         # plug inn quez in database
@@ -79,7 +111,7 @@ def admin_dashboard_quiz_edit(id):
                     ans_reg.update_answer_by_id(answer_id[i][0], answer['answer'], answer['correct'], id)
 
         flash(f'successfully edited quiz{id}', 'success')
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('home'))
     
     if request.method == 'GET':
         with QuizRegister() as qr:
@@ -111,7 +143,7 @@ def admin_dashboard_quiz_edit(id):
         return render_template('admin_dashboard_quiz_edit.html', form=form)
 
 @quizes.route('/delete/<int:quiz_id>', methods=['POST', 'GET'])
-def admin_dashboard_quiz_delete(quiz_id):
+def delete_quiz(quiz_id):
     # plug inn quez in database
     username = session['username']
     with AdminRegister() as ar:
@@ -139,44 +171,13 @@ def admin_dashboard_quiz_delete(quiz_id):
                 qr.delete_quiz_by_id(quiz_id)
 
             flash(f'Successfully deleted quiz: {title}', 'success')
-            return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('home'))
         else:
             flash(f'this functionality is only available to admins', 'info')
-            return redirect(url_for('login'))
+            return redirect(url_for('users.login'))
 
     
 
-@quizes.route('/new', methods=['POST', 'GET'])
-def admin_dashboard_quiz_new():
-    form = QuizForm()
-    if form.validate_on_submit():
-        # plug inn quez in database
-        username = session['username']
-        with AdminRegister() as ar:
-            admin = ar.get_admin(username)
-            with QuizRegister() as qr:
-                qr.create_quiz(
-                    title=form.title.data, 
-                    question=form.question.data, 
-                    active=form.active.data, 
-                    category=form.category.data,
-                    admin_id=admin[0]
-                    )
-                quiz = qr.get_all_quiz()
-                quiz_id = quiz[-1][0] # get last quiz
-            with AnswerRegister() as ans_reg:
-                answers = [
-                    {'answer': form.answer1.data, 'correct' : form.correct1.data},
-                    {'answer': form.answer2.data, 'correct' : form.correct2.data},
-                    {'answer': form.answer3.data, 'correct' : form.correct3.data},
-                    {'answer': form.answer4.data, 'correct' : form.correct4.data}
-                ]
-                for answer in answers:
-                    ans_reg.create_answer_for_quiz(answer['answer'], answer['correct'], quiz_id)
-
-        flash('successfully created quiz', 'success')
-        return redirect(url_for('admin_dashboard'))
-    return render_template('admin_dashboard_quiz_new.html', form=form)
 
 
 
