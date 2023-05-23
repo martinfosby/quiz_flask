@@ -10,9 +10,9 @@ Home
             {% endfor %}  
         {% endif %}  
     {% endwith %}  
-    <a href="{{url_for('quizes.listquizes')}}">browse quizes</a> <br>
+    <a href="{{url_for('quizes.list')}}">browse quizes</a> <br>
     <a href="{{url_for('quizes.quiz_view', quiz_id=1)}}">browse quizes one by one</a> <br>
-    {% if session.get('is_admin') %}
+    {% if is_admin %}
         <a href="{{url_for('users.listusers')}}">browse users</a><br>
         <a href="{{ url_for('quizes.create_quiz') }}">create a new quiz</a><br>
 

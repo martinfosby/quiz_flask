@@ -246,8 +246,8 @@ def quiz_view(quiz_id = 1):
 
 
 
-@quizes.route('/listquizes', methods=['POST', 'GET'])
-def listquizes():
+@quizes.route('/list', methods=['POST', 'GET'])
+def list():
     with QuizRegister() as qr:
         quizes = qr.get_all_quiz_as_list()
 

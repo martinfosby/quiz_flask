@@ -26,6 +26,7 @@ from .db import *
 from .utils import *
 import werkzeug
 import random
+import uuid
 # app.secret_key = secrets.token_urlsafe(16)
 app.permanent_session_lifetime = timedelta(days=7)
 
@@ -41,13 +42,18 @@ app.permanent_session_lifetime = timedelta(days=7)
 
 
 @app.route('/home')
-@app.route("/", methods=('GET', 'POST'))
+@app.route('/', methods=['POST', 'GET'])
 def home():
-    if session.get('logged_in'):
-        return render_template('home.html')
+    if session.get('id'):
+        user = get_user_by_id(session.get('id'))
+        if user['is_admin']:
+            return render_template('home.html', is_admin=True)
+        else:
+            return render_template('home.html', is_admin=False)
     else:
-        flash('Not logged in', category='error')
-        return redirect(url_for('users.login'))
+        # return redirect(url_for('users.login_user_type'))
+        session['uuid'] = str(uuid.uuid4()) # temporary session id for anonymous user
+        return render_template('home.html')
 
 
 

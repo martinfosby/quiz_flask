@@ -18,30 +18,63 @@ def db_get_connection():
 # Function to query multiple rows from the database
 
 def db_query_rows(sql, vars=None):
-    conn = db_get_connection()
-    cursor = conn.cursor()
-    cursor.execute(sql, vars)
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return rows
+    try:
+        conn = db_get_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, vars)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return rows
+    except:
+        conn.rollback()
+
+def db_query_rows_dict(sql, vars=None):
+    try:
+        conn = db_get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(sql, vars)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return rows
+    except:
+        conn.rollback()
 
 
 # Function to query a single row from the database
 def db_query_single(sql, vars=None):
-    conn = db_get_connection()
-    cursor = conn.cursor()
-    cursor.execute(sql, vars)
-    row = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    return row
+    try:
+        conn = db_get_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, vars)
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return row
+    except:
+        conn.rollback()
+
+def db_query_single_dict(sql, vars=None):
+    try:
+        conn = db_get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(sql, vars)
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return row
+    except:
+        conn.rollback()
 
 # Function to execute a statement on the database
 def db_exec(sql, vars=None):
-    conn = db_get_connection()
-    cursor = conn.cursor()
-    cursor.execute(sql, vars)
-    conn.commit()
-    cursor.close()
-    conn.close()
+    try:
+        conn = db_get_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, vars)
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except:
+        conn.rollback()

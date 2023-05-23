@@ -1,20 +1,26 @@
-from flask import session, redirect, request
-from .db import db_query_single
+from flask import session, redirect, request, flash, url_for
+from .db import *
 
 def get_user_id():
-    if session['logged_in']:
-        return session['logged_in']
+    if session.get('id'):
+        return session['id']
     return None
+
  
 
 def get_user():
     user_id = get_user_id()
     if user_id == None:
         return None
-    return db_query_single("SELECT * FROM users WHERE id=%s", [ user_id ])
+    return db_query_single_dict("SELECT * FROM users WHERE id=%s", [ user_id ])
+
+def get_user_by_id(id):
+    return db_query_single_dict("SELECT * FROM users WHERE id=%s", [ id ])
  
 
 def check_logged_in():
-    if not get_user_id():
-        return redirect('/login?continue_to=' + request.url)
-    return None
+    if session.get('logged_in'):
+        flash('You are already logged in', category='error')
+        return redirect(url_for('home'))
+    else:
+        return redirect('/users.login?continue_to=' + request.url)
