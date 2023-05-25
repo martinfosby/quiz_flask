@@ -1,4 +1,5 @@
 import mysql.connector
+from mysql.connector import errorcode, Error
 
 # MySQL database configuration
 
@@ -16,29 +17,17 @@ def db_get_connection():
     return mysql.connector.connect(**config)
 
 # Function to query multiple rows from the database
-
 def db_query_rows(sql, vars=None):
-    try:
-        conn = db_get_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, vars)
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return rows
-    except:
-        conn.rollback()
-
-def db_query_rows_dict(sql, vars=None):
     try:
         conn = db_get_connection()
         cursor = conn.cursor(dictionary=True)
         cursor.execute(sql, vars)
-        rows = cursor.fetchall()
+        row = cursor.fetchall()
         cursor.close()
         conn.close()
-        return rows
-    except:
+        return row
+    except Error as e:
+        print(e)
         conn.rollback()
 
 
@@ -46,25 +35,14 @@ def db_query_rows_dict(sql, vars=None):
 def db_query_single(sql, vars=None):
     try:
         conn = db_get_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, vars)
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return row
-    except:
-        conn.rollback()
-
-def db_query_single_dict(sql, vars=None):
-    try:
-        conn = db_get_connection()
         cursor = conn.cursor(dictionary=True)
         cursor.execute(sql, vars)
         row = cursor.fetchone()
         cursor.close()
         conn.close()
         return row
-    except:
+    except Error as e:
+        print(e)
         conn.rollback()
 
 # Function to execute a statement on the database
@@ -76,5 +54,6 @@ def db_exec(sql, vars=None):
         conn.commit()
         cursor.close()
         conn.close()
-    except:
+    except Error as e:
+        print(e)
         conn.rollback()

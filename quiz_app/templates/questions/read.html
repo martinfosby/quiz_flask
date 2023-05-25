@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}
+update question
+{% endblock %}
+{% block content %}
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}  
+            {% if messages %}  
+                {% for category, message in messages %}  
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}  
+            {% endif %}  
+        {% endwith %}  
+    </div>
+    {% if question %}
+    <div class="question-read">
+        <h1>{{ question.title }}</h1>
+        <p>{{ question.content }}</p>
+        <p>{{ question.answer_type }}</p>
+        <p>{{ question.category }}</p>
+        <a href="{{ url_for('questions.delete', question_id=question['id']) }}">delete</a>
+        <a href="{{ url_for('questions.update', question_id=question['id']) }}">update</a>
+    </div>
+    {% elif questions %}
+        {% for question in questions %}
+            <div class="question-read">
+                <h1>{{ question.title }}</h1>
+                <p>{{ question.content }}</p>
+                <p>{{ question.answer_type }}</p>
+                <p>{{ question.category }}</p>
+                <a href="{{ url_for('questions.delete', question_id=question['id']) }}">delete</a>
+                <a href="{{ url_for('questions.update', question_id=question['id']) }}">update</a>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

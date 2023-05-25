@@ -13,7 +13,7 @@ Home
     <a href="{{url_for('quizes.list')}}">browse quizes</a> <br>
     <a href="{{url_for('quizes.quiz_view', quiz_id=1)}}">browse quizes one by one</a> <br>
     {% if is_admin %}
-        <a href="{{url_for('users.listusers')}}">browse users</a><br>
+        <a href="{{url_for('users.list')}}">browse users</a><br>
         <a href="{{ url_for('quizes.create_quiz') }}">create a new quiz</a><br>
 
     {% endif %}

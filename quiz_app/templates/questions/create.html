@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}
+create question
+{% endblock %}
+{% block content %}
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}  
+            {% if messages %}  
+                {% for category, message in messages %}  
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}  
+            {% endif %}  
+        {% endwith %}  
+    </div>
+    <form method="POST" action="">
+    {{ form.csrf_token }}
+    <fieldset class="form-group">
+        <legend>Create question for quiz id: {{ quiz_id }}</legend>
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }} {{ form.title(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ form.content.label(class="form-label") }} 
+            {{ form.content(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ form.answer_type.label(class="form-label") }} 
+            {{ form.answer_type(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ form.category.label(class="form-label") }} 
+            {{ form.category(class="form-control") }} 
+        </div>
+        {{ form.submit(class="btn btn-primary")}}
+    </fieldset>
+    </form>
+{% endblock %}

@@ -43,13 +43,14 @@ def register():
         password_hash = werkzeug.security.generate_password_hash(form.password.data)
         first_name = form.first_name.data
         last_name = form.last_name.data
-        db_exec('''INSERT INTO administrator (username, email, password_hash, first_name, last_name) 
-        VALUES (%s, %s, %s, %s, %s)''', 
-        (username, email, password_hash, first_name, last_name))
+        is_admin = form.is_admin.data
+        db_exec('''INSERT INTO user (username, email, password_hash, first_name, last_name, is_admin) 
+        VALUES (%s, %s, %s, %s, %s, %s)''', 
+        (username, email, password_hash, first_name, last_name, is_admin))
         flash(f'Successfully created admin {username}', category='success')
         return redirect(url_for('home'))
         
-    return render_template('register.html', form=form)
+    return render_template('users/register.html', form=form)
 
 
 
@@ -86,12 +87,10 @@ def login():
         if form.validate_on_submit():
             username = form.username.data
             password = form.password.data
-            usr = db_query_single("SELECT * FROM user WHERE username=%s", [username])
-            user_id, username, email, password_hash, first_name, last_name, is_admin, created_at = usr
-            if usr:
-                if werkzeug.security.check_password_hash(password_hash, password):
-                    session['id'] = user_id
-                    session['logged_in'] = True
+            user = db_query_single("SELECT * FROM user WHERE username=%s", [username])
+            if user:
+                if werkzeug.security.check_password_hash(user.get('password_hash'), password):
+                    session['id'] = user.get('id')
                     flash(f'Successfully logged in as admin {username}', category='success')
                     return redirect(url_for('home'))
                 else:
@@ -100,7 +99,7 @@ def login():
             else:
                 flash(f'user does not exist {username}', category='error')
                 return redirect(url_for('users.login'))
-        return render_template('login.html', form=form)
+        return render_template('users/login.html', form=form)
     else:
         flash(f"Already logged in", category='success')
         return redirect(url_for('home'))

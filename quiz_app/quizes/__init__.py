@@ -10,7 +10,8 @@ from ..user_register import *
 from ..user_has_quiz import *
 from ..user_has_answer import *
 from ..mysql_cursor import *
-from ..db import db_query_rows
+from ..db import *
+from ..utils import *
 
 import random
 
@@ -53,96 +54,52 @@ def quiz():
 
 @quizes.route('/create', methods=['POST', 'GET'])
 def create_quiz():
-    form = QuizForm()
-    if form.validate_on_submit():
-        # plug inn quez in database
-        username = session['username']
-        with AdminRegister() as ar:
-            admin = ar.get_admin(username)
-            with QuizRegister() as qr:
-                qr.create_quiz(
-                    title=form.title.data, 
-                    question=form.question.data, 
-                    active=form.active.data, 
-                    category=form.category.data,
-                    admin_id=admin[0]
-                    )
-                quiz = qr.get_all_quiz()
-                quiz_id = quiz[-1][0] # get last quiz
-            with AnswerRegister() as ans_reg:
-                answers = [
-                    {'answer': form.answer1.data, 'correct' : form.correct1.data},
-                    {'answer': form.answer2.data, 'correct' : form.correct2.data},
-                    {'answer': form.answer3.data, 'correct' : form.correct3.data},
-                    {'answer': form.answer4.data, 'correct' : form.correct4.data}
-                ]
-                for answer in answers:
-                    ans_reg.create_answer_for_quiz(answer['answer'], answer['correct'], quiz_id)
-
-        flash('successfully created quiz', 'success')
+    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
+    if user.get('is_admin'):
+        form = QuizForm()
+        if form.validate_on_submit():
+            title = form.title.data
+            active = form.active.data
+            comment = form.comment.data
+            conn = db_get_connection()
+            cursor = conn.cursor()
+            cursor.execute('''INSERT INTO quiz (title, active, comment) VALUES (%s, %s, %s);''', [title, active, comment])
+            quiz_id = cursor.lastrowid
+            conn.commit();cursor.close();conn.close()
+            flash(f'successfully created quiz {title}', 'success')
+            return redirect(url_for('questions.create_question', quiz_id=quiz_id))
+        return render_template('quizes/create.html', form=form)
+    else:
+        flash('you are not an admin', 'danger')
         return redirect(url_for('home'))
-    return render_template('admin_dashboard_quiz_new.html', form=form)
 
-@quizes.route('/edit/<int:id>', methods=['POST', 'GET'])
-def edit_quiz(id):
+@quizes.route('/update/<int:id>', methods=['POST', 'GET'])
+def update_quiz(id):
     form = QuizForm()
     if form.validate_on_submit():
-        # plug inn quez in database
-        username = session['username']
-        with AdminRegister() as ar:
-            admin = ar.get_admin(username)
-            with QuizRegister() as qr:
-                qr.update_quiz_by_id(
-                    id,
-                    form.title.data, 
-                    form.question.data, 
-                    form.active.data, 
-                    form.category.data
-                )   
-            with AnswerRegister() as ans_reg:
-                answers = [
-                    {'answer': form.answer1.data, 'correct' : form.correct1.data},
-                    {'answer': form.answer2.data, 'correct' : form.correct2.data},
-                    {'answer': form.answer3.data, 'correct' : form.correct3.data},
-                    {'answer': form.answer4.data, 'correct' : form.correct4.data}
-                ]
-                for i, answer in enumerate(answers):
-                    answer_id = ans_reg.get_answer_by_quiz_id(id)
-                    ans_reg.update_answer_by_id(answer_id[i][0], answer['answer'], answer['correct'], id)
-
-        flash(f'successfully edited quiz{id}', 'success')
+        title = form.title.data
+        active = form.active.data
+        comment = form.comment.data
+        db_exec('''UPDATE quiz SET title=%s, active=%s, comment=%s WHERE id=%s''', [title, active, comment, id])
+        flash(f'successfully edited quiz{title}', 'success')
         return redirect(url_for('home'))
     
     if request.method == 'GET':
-        with QuizRegister() as qr:
-            quiz = qr.get_quiz_by_id(id)
-        with AnswerRegister() as ar:
-            answers = ar.get_answer_correct_dict_by_quiz_id(id)
-            for answer in answers:
-                # convert it so form is correct
-                if answer['correct']:
-                    answer['correct'] = True
-                else:
-                    answer['correct'] = False
-                answer['csrf_token'] = None
-        form.title.data = quiz[1]
-        form.question.data = quiz[2]
+        quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
+        form.title.data = quiz['title']
+        form.active.data = quiz['active']
+        form.comment.data = quiz['comment']
 
-        form.answer1.data = answers[0]['answer']
-        form.correct1.data = answers[0]['correct']
-        form.answer2.data = answers[1]['answer']
-        form.correct2.data = answers[1]['correct']
-        form.answer3.data = answers[2]['answer']
-        form.correct3.data = answers[2]['correct']
-        form.answer4.data = answers[3]['answer']
-        form.correct4.data = answers[3]['correct']
+        return render_template('quizes/update.html', form=form)
 
-        form.active.data = quiz[3]
-        form.category.data = quiz[4]
+@quizes.route('/read/<int:id>', methods=['POST', 'GET'])
+def read_quiz(id):
+    if request.method == 'GET':
+        quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
+        return render_template('quizes/read.html', quiz=quiz)
 
-        return render_template('admin_dashboard_quiz_edit.html', form=form)
 
-@quizes.route('/delete/<int:quiz_id>', methods=['POST', 'GET'])
+@quizes.route('/delete/<int:id>', methods=['POST', 'GET'])
 def delete_quiz(quiz_id):
     # plug inn quez in database
     username = session['username']

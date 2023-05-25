@@ -10,13 +10,6 @@ register
 
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    <label for="is_admin" class="form-label">is admin</label>
-                    {{ form.is_admin(class="form-checkbox", id="is_admin") }}
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group col-md-6">
                     <label for="username" class="form-label">Username</label>
                     {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
                 </div>
@@ -50,6 +43,13 @@ register
                 <div class="form-group col-md-6">
                     <label for="last_name" class="form-label" id="last_name_label">Last Name</label>
                     {{ form.last_name(class="form-control", id="last_name", placeholder="Enter your last name") }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="is_admin" class="form-label">is admin</label>
+                    {{ form.is_admin(class="form-checkbox", id="is_admin") }}
                 </div>
             </div>
 

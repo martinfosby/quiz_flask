@@ -12,10 +12,10 @@ def get_user():
     user_id = get_user_id()
     if user_id == None:
         return None
-    return db_query_single_dict("SELECT * FROM users WHERE id=%s", [ user_id ])
+    return db_query_single("SELECT * FROM user WHERE id=%s", [ user_id ])
 
 def get_user_by_id(id):
-    return db_query_single_dict("SELECT * FROM users WHERE id=%s", [ id ])
+    return db_query_single("SELECT * FROM user WHERE id=%s", [ id ])
  
 
 def check_logged_in():

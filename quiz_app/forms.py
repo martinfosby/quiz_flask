@@ -34,23 +34,18 @@ class RegistrationForm(FlaskForm):
     # answer = StringField('Answer')
     # correct = BooleanField('Correct')
 
+class QuestionForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    content = TextAreaField('Question', validators=[DataRequired()])
+    answer_type = SelectField('Answer Type', choices=[('single', 'Single'), ('multiple', 'Multiple'), ('essay', 'Essay')], default='single', validators=[DataRequired()])
+    category = StringField('Category', validators=[DataRequired()])
+    submit = SubmitField('Submit question')
+
 class QuizForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
-    question = TextAreaField('Question', validators=[DataRequired()])
-    # answers = FieldList(FormField(AnswerForm), min_entries=4)
-
-    answer1 = StringField('Answer')
-    correct1 = BooleanField('Correct')
-    answer2 = StringField('Answer')
-    correct2 = BooleanField('Correct')
-    answer3 = StringField('Answer')
-    correct3 = BooleanField('Correct')
-    answer4 = StringField('Answer')
-    correct4 = BooleanField('Correct')
-
-    active = BooleanField('Active', validators=[DataRequired()])
-    category = StringField('Category')
-    submit = SubmitField('Submit question')
+    active = BooleanField('Active', validators=[DataRequired()], default=True)
+    comment = TextAreaField('Comment')
+    submit = SubmitField('Submit quiz')
 
 class RadioForm(FlaskForm):
     # answers = RadioField('Label', choices=[('value1', 'Label1'), ('value2', 'Label2'), ('value3', 'Label3'), ('value4', 'Label4')])

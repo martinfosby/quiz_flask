@@ -46,7 +46,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 def home():
     if session.get('id'):
         user = get_user_by_id(session.get('id'))
-        if user['is_admin']:
+        if user.get('is_admin'):
             return render_template('home.html', is_admin=True)
         else:
             return render_template('home.html', is_admin=False)
