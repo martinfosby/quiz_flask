@@ -97,18 +97,23 @@ def read_quiz(id):
     if request.method == 'GET':
         quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
         questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [id])
-        answers_for_quiz = db_query_rows("SELECT * FROM answer WHERE quiz_id=%s", [id])
-        return render_template('quizes/read.html', quiz=quiz, questions=questions)
+        answers = db_query_rows("SELECT * FROM answer WHERE quiz_id=%s", [id])
+        return render_template('quizes/read.html', quiz=quiz, questions=questions, answers=answers)
 
 
 @quizes.route('/delete/<int:id>', methods=['POST', 'GET'])
 def delete_quiz(id):
     # delete on cascade
-    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
+    user = get_user()
     if user.get('is_admin'):
-        db_exec('''DELETE FROM quiz WHERE id=%s''', [id])
-        flash(f'Successfully deleted quiz: {id}', 'success')
-        return redirect(url_for('home'))
+        if request.method == 'POST':
+            db_exec('''DELETE FROM quiz WHERE id=%s''', [id])
+            flash(f'Successfully deleted quiz: {id}', 'success')
+            return redirect(url_for('home'))
+        elif request.method == 'GET':
+            return render_template('quizes/delete.html', id=id)
+
+            
     else:
         flash(f'this functionality is only available to admins', 'info')
         return redirect(url_for('home'))

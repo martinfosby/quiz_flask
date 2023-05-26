@@ -30,9 +30,11 @@ class RegistrationForm(FlaskForm):
     last_name = StringField(label='Last name')
     submit = SubmitField('Register')
 
-# class AnswerForm(FlaskForm):
-    # answer = StringField('Answer')
-    # correct = BooleanField('Correct')
+class AnswerForm(FlaskForm):
+    answer = StringField('Answer', validators=[DataRequired()])
+    comment = TextAreaField('Comment')
+    correct = BooleanField('Correct')
+    submit = SubmitField('Submit answer')
 
 class QuestionForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])

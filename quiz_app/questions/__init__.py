@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, f
 from ..forms import QuestionForm
 
 from ..db import *
+from ..utils import *
 
 
 questions = Blueprint('questions', __name__, url_prefix='/questions')
@@ -16,11 +17,15 @@ def create_question(quiz_id):
         content = form.content.data
         answer_type = form.answer_type.data
         category = form.category.data
-        db_exec('''INSERT INTO question (quiz_id, title, content, answer_type, category) 
+        conn = db_get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''INSERT INTO question (quiz_id, title, content, answer_type, category) 
         VALUES (%s, %s, %s, %s, %s)''', 
         (quiz_id, title, content, answer_type, category))
+        question_id = cursor.lastrowid
+        conn.commit();cursor.close();conn.close()
         flash(f'Successfully created question {title} for quiz {quiz_id}', category='success')
-        return redirect(url_for('quizes.read_quiz', id=quiz_id))
+        return redirect(url_for('answers.create_answer', quiz_id=quiz_id, question_id=question_id))
     return render_template('questions/create.html', form=form, quiz_id=quiz_id)
 
 @questions.route('/read/<int:quiz_id>', methods=['GET'])
@@ -58,7 +63,15 @@ def update_question(id):
 
 @questions.route('/delete/<int:id>', methods=['GET'])
 def delete_question(id):
-    db_exec("DELETE FROM question WHERE id=%s", [id])
-    flash(f'Successfully deleted question {id}', category='success')
-    return redirect(url_for('home'))
+    user = get_user()
+    if user.get('is_admin'):
+        if request.method == 'POST':
+            db_exec('''DELETE FROM question WHERE id=%s''', [id])
+            flash(f'Successfully deleted question: {id}', 'success')
+            return redirect(url_for('home'))
+        elif request.method == 'GET':
+            return render_template('questions/delete.html', id=id)
+    else:
+        flash(f'this functionality is only available to admins', 'info')
+        return redirect(url_for('home'))
 

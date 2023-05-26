@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}
-delete quiz 
+create answer
 {% endblock %}
 {% block content %}
     <div id="flash-messages">
@@ -15,14 +15,21 @@ delete quiz
         {% endwith %}  
     </div>
     <form method="POST" action="">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ form.csrf_token }}
     <fieldset class="form-group">
-        <legend>delete quiz</legend>
+        <legend>Create answer for question_id: {{ question_id }}</legend>
         <div class="mb-3">
-            <input type="submit" class="btn btn-danger" value="delete">
-            <input type="submit" class="btn btn-primary" value="cancel">
+            {{ form.answer.label(class="form-label") }} {{ form.answer(class="form-control") }} 
         </div>
+        <div class="mb-3">
+            {{ form.comment.label(class="form-label") }} 
+            {{ form.comment(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ form.correct.label(class="form-label") }} 
+            {{ form.correct(class="form-check") }} 
+        </div>
+        {{ form.submit(class="btn btn-primary")}}
     </fieldset>
     </form>
-
 {% endblock %}

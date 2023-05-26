@@ -14,7 +14,7 @@ create quiz
             {% endif %}  
         {% endwith %}  
     </div>
-    <form method="POST" action="">
+    <form method="POST" action="" id="quiz_form">
     {{ form.csrf_token }}
     <fieldset class="form-group">
         <legend>Create quiz</legend>
@@ -28,8 +28,70 @@ create quiz
             {{ form.comment.label(class="form-label") }}
             {{ form.comment(class="form-control") }} 
         </div>
+        <!-- <div id="formContainer">
+            <button class="btn btn-secondary" onclick="createForm()">Add Question</button>
+        </div> -->
+
+        {#
+        <div class="mb-3">
+            <button type="submit" class="btn btn-secondary" formaction="{{ url_for('quizes.create_quiz', action='add') }}">Add question</button>
+        </div>
+            #}
         {{ form.submit(class="btn btn-primary")}}
     </fieldset>
     </form>
 
+
+    {#
+    {% if question_form %}
+    <form method="POST" action="">
+    {{ question_form.csrf_token }}
+    <fieldset class="form-group">
+        <legend>Create question</legend>
+        <div class="mb-3">
+            {{ question_form.title.label(class="form-label") }} {{ question_form.title(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ question_form.content.label(class="form-label") }} 
+            {{ question_form.content(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ question_form.answer_type.label(class="form-label") }} 
+            {{ question_form.answer_type(class="form-control") }} 
+        </div>
+        <div class="mb-3">
+            {{ question_form.category.label(class="form-label") }} 
+            {{ question_form.category(class="form-control") }} 
+        </div>
+        {{ question_form.submit(class="btn btn-primary")}}
+    </fieldset>
+    </form>
+    {% endif %}
+        #}
+
+    <!-- <button type="submit" class="btn btn-primary" form="quiz_form">Submit Quiz</button> -->
+
+
+{% endblock %}
+{% block script %}
+    <script>
+         function createForm() {
+            // Create a new form element
+            var form = document.createElement('form');
+            form.id = 'dynamicForm';
+
+            // Load the content from an external HTML file
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'questions/create.html', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                form.innerHTML = xhr.responseText;
+
+                // Append the form to a container or the document body
+                document.getElementById('formContainer').appendChild(form);
+                }
+            };
+            xhr.send();
+        }
+    </script>
 {% endblock %}
