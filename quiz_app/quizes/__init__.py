@@ -96,42 +96,22 @@ def update_quiz(id):
 def read_quiz(id):
     if request.method == 'GET':
         quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
-        return render_template('quizes/read.html', quiz=quiz)
+        questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [id])
+        answers_for_quiz = db_query_rows("SELECT * FROM answer WHERE quiz_id=%s", [id])
+        return render_template('quizes/read.html', quiz=quiz, questions=questions)
 
 
 @quizes.route('/delete/<int:id>', methods=['POST', 'GET'])
-def delete_quiz(quiz_id):
-    # plug inn quez in database
-    username = session['username']
-    with AdminRegister() as ar:
-        admin = ar.get_admin(username)
-        if admin:
-            # delete in order of foreign keys
-            with UserHasQuiz() as uhq:
-                uhq_join = uhq.join_user_quiz_with_quiz_id(quiz_id)
-                for row in uhq_join:
-                    user_id = row[4]
-                    uhq.delete_quiz_id(user_id, quiz_id)
-            with AnswerRegister() as ar:
-                answers_for_quiz_id = ar.get_answer_by_quiz_id(quiz_id)
-                with UserHasAnswer() as uha:
-                    for ans_row in answers_for_quiz_id:
-                        answer_id = ans_row[0]
-                        uha_select = uha.get_answer_id(answer_id)
-                        for i, row in enumerate(uha_select):
-                            user_id = row[0]
-                            uha.delete_user_has_answer(user_id, answer_id)
-                delete_answer = ar.delete_answer_by_id(quiz_id)
-            with QuizRegister() as qr:
-                title = qr.get_quiz_title_by_id(quiz_id)
-                title = title[0]
-                qr.delete_quiz_by_id(quiz_id)
-
-            flash(f'Successfully deleted quiz: {title}', 'success')
-            return redirect(url_for('home'))
-        else:
-            flash(f'this functionality is only available to admins', 'info')
-            return redirect(url_for('users.login'))
+def delete_quiz(id):
+    # delete on cascade
+    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
+    if user.get('is_admin'):
+        db_exec('''DELETE FROM quiz WHERE id=%s''', [id])
+        flash(f'Successfully deleted quiz: {id}', 'success')
+        return redirect(url_for('home'))
+    else:
+        flash(f'this functionality is only available to admins', 'info')
+        return redirect(url_for('home'))
 
     
 
@@ -205,8 +185,7 @@ def quiz_view(quiz_id = 1):
 
 @quizes.route('/list', methods=['POST', 'GET'])
 def list():
-    with QuizRegister() as qr:
-        quizes = qr.get_all_quiz_as_list()
+    quizes = db_query_rows("SELECT * FROM quiz")
 
     for quiz in quizes:
         with AnswerRegister() as ar:

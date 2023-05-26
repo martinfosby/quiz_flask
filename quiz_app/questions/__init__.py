@@ -20,7 +20,7 @@ def create_question(quiz_id):
         VALUES (%s, %s, %s, %s, %s)''', 
         (quiz_id, title, content, answer_type, category))
         flash(f'Successfully created question {title} for quiz {quiz_id}', category='success')
-        return redirect(url_for('quizes.read_quiz'))
+        return redirect(url_for('quizes.read_quiz', id=quiz_id))
     return render_template('questions/create.html', form=form, quiz_id=quiz_id)
 
 @questions.route('/read/<int:quiz_id>', methods=['GET'])

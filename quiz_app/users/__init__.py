@@ -113,3 +113,64 @@ def list():
     else:
         flash('You are not authorized to access this page', category='error')
         return redirect(url_for('/'))
+
+@users.route('/create', methods=['POST', 'GET'])
+def create():
+    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
+    if user.get('is_admin'):
+        form = QuizForm()
+        if form.validate_on_submit():
+            title = form.title.data
+            active = form.active.data
+            comment = form.comment.data
+            conn = db_get_connection()
+            cursor = conn.cursor()
+            cursor.execute('''INSERT INTO quiz (title, active, comment) VALUES (%s, %s, %s);''', [title, active, comment])
+            quiz_id = cursor.lastrowid
+            conn.commit();cursor.close();conn.close()
+            flash(f'successfully created quiz {title}', 'success')
+            return redirect(url_for('questions.create_question', quiz_id=quiz_id))
+        return render_template('quizes/create.html', form=form)
+    else:
+        flash('you are not an admin', 'danger')
+        return redirect(url_for('home'))
+
+@users.route('/update/<int:id>', methods=['POST', 'GET'])
+def update(id):
+    if check_admin():
+        form = QuizForm()
+        if form.validate_on_submit():
+            title = form.title.data
+            active = form.active.data
+            comment = form.comment.data
+            db_exec('''UPDATE quiz SET title=%s, active=%s, comment=%s WHERE id=%s''', [title, active, comment, id])
+            flash(f'successfully edited quiz{title}', 'success')
+            return redirect(url_for('home'))
+        
+        if request.method == 'GET':
+            quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
+            form.title.data = quiz['title']
+            form.active.data = quiz['active']
+            form.comment.data = quiz['comment']
+
+            return render_template('quizes/update.html', form=form)
+
+@users.route('/read/<int:id>', methods=['POST', 'GET'])
+def read(id):
+    if request.method == 'GET':
+        user = db_query_single("SELECT * FROM user WHERE id=%s", [id])
+        user_answers = db_query_rows("SELECT * FROM user_has_answer WHERE id=%s", [id])
+        return render_template('users/read.html')
+
+
+@users.route('/delete/<int:id>', methods=['POST', 'GET'])
+def delete(id):
+    # delete on cascade
+    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
+    if user.get('is_admin'):
+        db_exec('''DELETE FROM user WHERE id=%s''', [id])
+        flash(f'Successfully deleted user: {id}', 'success')
+        return redirect(url_for('home'))
+    else:
+        flash(f'this functionality is only available to admins', 'info')
+        return redirect(url_for('home'))

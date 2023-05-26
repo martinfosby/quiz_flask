@@ -2,6 +2,7 @@
 {% block title %}
 Home
 {% endblock %}
+
 {% block content %}
     {% with messages = get_flashed_messages() %}  
         {% if messages %}  
@@ -14,7 +15,6 @@ Home
     <a href="{{url_for('quizes.quiz_view', quiz_id=1)}}">browse quizes one by one</a> <br>
     {% if is_admin %}
         <a href="{{url_for('users.list')}}">browse users</a><br>
-        <a href="{{ url_for('quizes.create_quiz') }}">create a new quiz</a><br>
 
     {% endif %}
 {% endblock %}
