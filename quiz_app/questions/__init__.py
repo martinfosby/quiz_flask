@@ -61,14 +61,18 @@ def update_question(id):
     return render_template('questions/update.html', question=question)
 
 
-@questions.route('/delete/<int:id>', methods=['GET'])
+@questions.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete_question(id):
     user = get_user()
     if user.get('is_admin'):
         if request.method == 'POST':
-            db_exec('''DELETE FROM question WHERE id=%s''', [id])
-            flash(f'Successfully deleted question: {id}', 'success')
-            return redirect(url_for('home'))
+            if request.form.get('submit') == 'delete':
+                db_exec('''DELETE FROM question WHERE id=%s''', [id])
+                flash(f'Successfully deleted question: {id}', 'success')
+                return redirect(url_for('home'))
+            elif request.form.get('submit') == 'cancel':
+                flash(f'Successfully cancelled: {id}', 'success')
+                return redirect(url_for('home'))
         elif request.method == 'GET':
             return render_template('questions/delete.html', id=id)
     else:

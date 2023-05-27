@@ -17,7 +17,15 @@ import random
 
 quizes = Blueprint('quizes', __name__, url_prefix='/quizes')
 
-@quizes.route('/quiz', methods=['GET'])
+
+@quizes.route('/index')
+@quizes.route('/home')
+@quizes.route('/')
+def home():
+    quizes = db_query_rows("SELECT * FROM quiz")
+    return render_template('quizes/home.html', quizes=quizes)
+
+@quizes.route('/user/answers', methods=['GET'])
 def quiz():
     with MySqlCursor() as mc:
         myselect = mc.execute_select(
@@ -77,11 +85,14 @@ def create_quiz():
 def update_quiz(id):
     form = QuizForm()
     if form.validate_on_submit():
-        title = form.title.data
-        active = form.active.data
-        comment = form.comment.data
-        db_exec('''UPDATE quiz SET title=%s, active=%s, comment=%s WHERE id=%s''', [title, active, comment, id])
-        flash(f'successfully edited quiz{title}', 'success')
+        if request.form.get('submit') == 'Update':
+            title = form.title.data
+            active = form.active.data
+            comment = form.comment.data
+            db_exec('''UPDATE quiz SET title=%s, active=%s, comment=%s WHERE id=%s''', [title, active, comment, id])
+            flash(f'successfully updated quiz {title}', 'success')
+        elif request.form.get('submit') == 'Cancel':
+            flash(f'successfully cancelled', 'success')
         return redirect(url_for('home'))
     
     if request.method == 'GET':
@@ -107,13 +118,14 @@ def delete_quiz(id):
     user = get_user()
     if user.get('is_admin'):
         if request.method == 'POST':
-            db_exec('''DELETE FROM quiz WHERE id=%s''', [id])
-            flash(f'Successfully deleted quiz: {id}', 'success')
+            if request.form.get('submit') == 'delete':
+                db_exec('''DELETE FROM quiz WHERE id=%s''', [id])
+                flash(f'Successfully deleted quiz: {id}', 'success')
+            elif request.form.get('submit') == 'cancel':
+                flash(f'Successfully cancelled: {id}', 'success')
             return redirect(url_for('home'))
         elif request.method == 'GET':
             return render_template('quizes/delete.html', id=id)
-
-            
     else:
         flash(f'this functionality is only available to admins', 'info')
         return redirect(url_for('home'))

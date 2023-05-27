@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}
+Quizes home
+{% endblock %}
+{% block content %}
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}  
+            {% if messages %}  
+                {% for category, message in messages %}  
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}  
+            {% endif %}  
+        {% endwith %}  
+    </div>
+    <h1>Quizes</h1>
+    <div class="card m-3" id="create-quiz">
+        <a href="{{ url_for('quizes.create_quiz') }}" class="btn btn-primary">Create quiz</a>
+    </div>
+
+    {% for quiz in quizes %}
+        <div class="card m-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ quiz.title }}</h5>
+                <p class="card-text">{{ quiz.comment }}</p>
+                <a href="{{ url_for('quizes.read_quiz', id=quiz.id) }}" class="btn btn-primary">Read</a>
+                {% if is_admin %}
+                    <a href="{{ url_for('questions.create_question', quiz_id=quiz.id) }}" class="btn btn-primary">Add question</a>
+                    <a href="{{ url_for('quizes.update_quiz', id=quiz.id) }}" class="btn btn-primary">Update</a>
+                    <a href="{{ url_for('quizes.delete_quiz', id=quiz.id) }}" class="btn btn-danger">Delete</a>
+                    {#
+                        #}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

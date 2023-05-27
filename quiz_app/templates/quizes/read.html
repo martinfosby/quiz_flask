@@ -15,20 +15,36 @@ read quiz
         {% endwith %}  
     </div>
     {% if quiz %}
-    <div class="quiz-read">
+    <div class="quiz">
         <h1>{{ quiz['title'] }}</h1>
-        <p>active: {{ quiz['active'] }}</p>
         <p>comment: {{ quiz['comment'] }}</p>
-        <a href="{{ url_for('quizes.delete_quiz', id=quiz['id']) }}">delete quiz</a> <br>
-        <a href="{{ url_for('quizes.update_quiz', id=quiz['id']) }}">update quiz</a> <br>
-        <a href="{{ url_for('questions.create_question', quiz_id=quiz['id']) }}">create question</a>
+        {% if is_admin %}
+            <p>active: {{ quiz['active'] }}</p>
+            <a href="{{ url_for('quizes.delete_quiz', id=quiz['id']) }}">delete quiz</a> <br>
+            <a href="{{ url_for('quizes.update_quiz', id=quiz['id']) }}">update quiz</a> <br>
+            <a href="{{ url_for('questions.create_question', quiz_id=quiz['id']) }}">create question</a>
+        {% endif %}
         {% if questions %}
-            <div class="quiz-questions">
+            <div class="questions">
                 {% for question in questions %}
-                    <div class="question-read">
+                    <div class="question">
                         <h2>{{ question['title'] }}</h2>
                         <p>{{ question['content'] }}</p>
                         <p>{{ question['answer_type'] }}</p>
+                        {% if answers %}
+                            {% if question['answer_type'] == 'single' %}
+                                {% for answer in answers %}
+
+                                <p>{{ answer }}</p>
+
+                                {% endfor %}
+
+                            {% elif question['answer_type'] == 'multiple' %}
+                            
+                            {% else %}
+
+                            {% endif %}
+                        {% endif %}
                         <p>{{ question['category'] }}</p>
                         <a href="{{ url_for('questions.delete_question', id=question['id']) }}">delete</a>
                         <a href="{{ url_for('questions.update_question', id=question['id']) }}">update</a>
