@@ -15,21 +15,21 @@ user type
         {% endwith %}  
     </div>
     <form method="POST" action="" class="login-form">
-        {{ user_type_form.csrf_token() }}
+        {{ form.csrf_token() }}
         <fieldset class="form-group">
             <legend class="form-legend">Log in</legend>
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="usertype" class="form-label">usertype</label>
-                    {{ user_type_form.usertype(class="form-control", id="usertype") }}
+                    {{ form.usertype(class="form-control", id="usertype") }}
                 </div>
             </div>
-            {% for field, errors in user_type_form.errors.items() %}
+            {% for field, errors in form.errors.items() %}
                 <div class="alert alert-danger">{{ ', '.join(errors) }}</div>
             {% endfor %}
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    {{ user_type_form.submit(class="btn btn-primary btn-block", value="Select user") }}
+                    {{ form.submit(class="btn btn-primary btn-block", value="Select user") }}
                 </div>
             </div>
         </fieldset>

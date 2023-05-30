@@ -105,11 +105,41 @@ def update_quiz(id):
 
 @quizes.route('/read/<int:id>', methods=['POST', 'GET'])
 def read_quiz(id):
+    if request.method == 'POST':
+        if request.form.get('type') != 'essay':
+            answer_ids = request.form.getlist('answer')
+            for answer_id in answer_ids:
+                answer_id = int(answer_id)
+                answer = db_query_single("SELECT * FROM answer WHERE id=%s", [answer_id])
+                question_id = answer['question_id']
+                db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id) VALUES (%s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id])
+            if not answer_ids:
+                flash('you must select at least one answer', 'danger')
+        else:
+            essay = request.form.get('answer')
+        return redirect(url_for('quizes.read_quiz', id=id))
+
     if request.method == 'GET':
         quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
         questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [id])
-        answers = db_query_rows("SELECT * FROM answer WHERE quiz_id=%s", [id])
-        return render_template('quizes/read.html', quiz=quiz, questions=questions, answers=answers)
+        # answers = db_query_rows("SELECT * FROM answer WHERE question_quiz_id=%s", [id])
+        answers = {}
+        forms = {}
+        for question in questions:
+            answers[question['id']] = db_query_rows("SELECT * FROM answer WHERE question_id=%s AND question_quiz_id=%s ORDER BY RAND()", [question['id'], id])
+            if answers[question['id']]:
+                if question['answer_type'] == 'single':
+                    form = RadioForm()
+                    for answer in answers[question['id']]:
+                        form.answer.choices.append((answer['id'], answer['answer']))
+                elif question['answer_type'] == 'multiple':
+                    form = CheckBoxForm()
+                    for answer in answers[question['id']]:
+                        form.answer.choices.append((answer['id'], answer['answer']))
+            else:
+                form = TextForm()
+            forms[question['id']] = form
+        return render_template('quizes/read.html', quiz=quiz, questions=questions, answers=answers, forms=forms)
 
 
 @quizes.route('/delete/<int:id>', methods=['POST', 'GET'])
@@ -205,11 +235,9 @@ def list():
     quizes = db_query_rows("SELECT * FROM quiz")
 
     for quiz in quizes:
-        with AnswerRegister() as ar:
-            quiz_id = quiz[0]
-            answers = ar.get_answer_dict_by_quiz_id(quiz_id)
-            random.shuffle(answers)
-            quiz.append(answers)
+        quiz_id = quiz[0]
+        questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [quiz_id])
+        answers = db_query_rows("SELECT * FROM answer WHERE question_quiz_id=%s ORDER BY RAND()", [quiz_id])
 
 
     if request.method == 'GET':

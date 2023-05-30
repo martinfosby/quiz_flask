@@ -45,15 +45,10 @@ app.permanent_session_lifetime = timedelta(days=7)
 @app.route('/', methods=['POST', 'GET'])
 def home():
     if session.get('id'):
-        user = get_user_by_id(session.get('id'))
-        if user.get('is_admin'):
-            return render_template('home.html', is_admin=True)
-        else:
-            return render_template('home.html', is_admin=False)
-    else:
-        # return redirect(url_for('users.login_user_type'))
-        session['uuid'] = str(uuid.uuid4()) # temporary session id for anonymous user
+        # user = get_user_by_id(session.get('id'))
         return render_template('home.html')
+    else:
+        return redirect(url_for('users.login_user_type'))
 
 
 

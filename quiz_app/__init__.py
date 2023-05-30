@@ -21,8 +21,12 @@ csrf = CSRFProtect(app)
 def inject_variables():
     # Determine if the user is an administrator
     is_admin = False
+    is_anonymous = False
+    is_regular = False
     if user := get_user():
         is_admin = user.get('is_admin')
+        is_anonymous = user.get('is_anonymous')
+        is_regular = user.get('is_regular')
     
     # Define the variables to be available in all templates
-    return dict(is_admin=is_admin)
+    return dict(is_admin=is_admin, is_anonymous=is_anonymous, is_regular=is_regular)

@@ -46,11 +46,25 @@ def db_query_single(sql, vars=None):
         conn.rollback()
 
 # Function to execute a statement on the database
-def db_exec(sql, vars=None):
+def db_exec(sql, *args, **kargs):
     try:
         conn = db_get_connection()
         cursor = conn.cursor()
-        cursor.execute(sql, vars)
+        cursor.execute(sql, *args, **kargs)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return cursor.lastrowid
+    except Error as e:
+        print(e)
+        conn.rollback()
+
+# Function to execute a statement on the database
+def db_exec_many(sql, vars=None):
+    try:
+        conn = db_get_connection()
+        cursor = conn.cursor()
+        cursor.executemany(sql, vars)
         conn.commit()
         cursor.close()
         conn.close()

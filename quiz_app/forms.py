@@ -1,6 +1,6 @@
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, PasswordField, BooleanField, TextAreaField, FieldList, FormField, RadioField, SelectMultipleField, EmailField
+from wtforms import StringField, SubmitField, SelectField, PasswordField, BooleanField, TextAreaField, FieldList, FormField, RadioField, SelectMultipleField, EmailField, widgets, validators
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 user_length = 2
@@ -10,8 +10,12 @@ form_control = {"class": "form-control"}
 form_check_input = {"class" : "form-check-input"}
 form_check_label = {"class" : "form-check-label"}
 
+def validate_multiple_select_field(form, field):
+    if not field.data:
+        raise validators.ValidationError('Please select at least one option.')
+
 class UserTypeForm(FlaskForm):
-    usertype = SelectField('User Type', choices=[('admin', 'Admin'), ('user', 'User')], default='user')
+    usertype = SelectField('User Type', choices=[('admin', 'Admin'), ('user', 'User'), ('guest', 'Guest')], default='user')
     submit = SubmitField('select')
 
 
@@ -49,10 +53,18 @@ class QuizForm(FlaskForm):
     comment = TextAreaField('Comment')
     submit = SubmitField('Submit quiz')
 
+class CheckBoxForm(FlaskForm):
+    answer = SelectMultipleField('Answer', choices=[], option_widget=widgets.CheckboxInput(), widget=widgets.ListWidget(prefix_label=False))
+    submit = SubmitField('Submit answer')
+
 class RadioForm(FlaskForm):
     # answers = RadioField('Label', choices=[('value1', 'Label1'), ('value2', 'Label2'), ('value3', 'Label3'), ('value4', 'Label4')])
-    answer = RadioField(label='hello', choices = [], validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    answer = RadioField('Answer', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Submit answer')
+
+class TextForm(FlaskForm):
+    answer = TextAreaField('Answer', validators=[DataRequired()])
+    submit = SubmitField('Submit answer')
 
 class SelectForm(FlaskForm):
     answer = SelectMultipleField('Answer', choices=[('value1', 'Label1'), ('value2', 'Label2'), ('value3', 'Label3'), ('value4', 'Label4')])

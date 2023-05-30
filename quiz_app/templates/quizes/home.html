@@ -15,9 +15,11 @@ Quizes home
         {% endwith %}  
     </div>
     <h1>Quizes</h1>
+    {% if is_admin %}
     <div class="card m-3" id="create-quiz">
         <a href="{{ url_for('quizes.create_quiz') }}" class="btn btn-primary">Create quiz</a>
     </div>
+    {% endif %}
 
     {% for quiz in quizes %}
         <div class="card m-3">

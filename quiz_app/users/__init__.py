@@ -56,28 +56,37 @@ def register():
 
 @users.route('/logout', methods=["GET", "POST"])
 def logout():
-    if session.get('logged_in'):
-        usr = db_query_single("SELECT * FROM administrator WHERE id=%s", [session['id']])
+    if session.get('id'):
+        user = get_user()
         session.clear() # clear the rest
-        if usr.is_admin:
-            flash(f'logged out as admin {usr.username}', 'info')
-        else:
+        if user.get('is_admin'):
+            flash(f'logged out as admin {user.get("username")}', 'info')
+        elif user.get('is_regular'):
             flash(f'logged out as user', 'info')
+        elif user.get('is_anonymous'):
+            flash(f'logged out as guest', 'info')
         return redirect(url_for('home'))
     else:
         flash('not logged in', 'info')
         return redirect(url_for('users.login'))
 
 
-# @users.route('/login/user/type', methods=['GET', 'POST'])
-# def login_user_type():
-#     user_type_form = UserTypeForm()
-#     if user_type_form.validate_on_submit():
-#         if user_type_form.usertype.data == 'admin':
-#             return redirect(url_for('users.login'))
-
-#     else:
-#         return render_template('user_type.html', user_type_form=user_type_form)
+@users.route('/login/user/type', methods=['GET', 'POST'])
+def login_user_type():
+    form = UserTypeForm()
+    if form.validate_on_submit():
+        if form.usertype.data == 'admin':
+            return redirect(url_for('users.login'))
+        elif form.usertype.data == 'user':
+            return redirect(url_for('users.login'))
+        elif form.usertype.data == 'guest':
+            session['id'] = db_exec('''INSERT INTO user (is_anonymous, is_regular, is_admin) VALUES (%s, %s, %s)''', (1,0,0))
+            return redirect(url_for('home'))
+        else:
+            flash(f'Invalid user type { form.usertype.data}', category='error')
+            return redirect(url_for('users.login_user_type'))
+    else:
+        return render_template('user_type.html', form=form)
 
 
 @users.route('/login', methods=['GET', 'POST'])
