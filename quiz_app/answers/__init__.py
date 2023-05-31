@@ -8,7 +8,6 @@ from ..utils import *
 
 answers = Blueprint('answers', __name__, url_prefix='/answers')
 
-
 @answers.route('/create/<int:quiz_id>/<int:question_id>', methods=['POST', 'GET'])
 def create_answer(quiz_id, question_id):
     form = AnswerForm()
@@ -16,13 +15,9 @@ def create_answer(quiz_id, question_id):
         answer = form.answer.data
         comment = form.comment.data
         correct = form.correct.data
-        conn = db_get_connection()
-        cursor = conn.cursor()
-        cursor.execute('''INSERT INTO answer (question_id, question_quiz_id, answer, comment, correct) 
+        answer_id = db_exec('''INSERT INTO answer (question_id, question_quiz_id, answer, comment, correct) 
         VALUES (%s, %s, %s, %s, %s)''', 
         (question_id, quiz_id, answer, comment, correct))
-        answer_id = cursor.lastrowid
-        conn.commit();cursor.close();conn.close()
         flash(f'Successfully created answer {answer} for question {question_id} for quiz {quiz_id}', category='success')
         return redirect(url_for('answers.create_answer', quiz_id=quiz_id, question_id=question_id))
     return render_template('answers/create.html', form=form, quiz_id=quiz_id, question_id=question_id)
@@ -46,7 +41,7 @@ def update_answer(id):
         answer = form.answer.data
         comment = form.comment.data
         correct = form.correct.data
-        db_exec('''UPDATE question SET answer=%s, comment=%s, correct=%s WHERE id=%s''', 
+        db_exec('''UPDATE answer SET answer=%s, comment=%s, correct=%s WHERE id=%s''', 
         (answer, comment, correct, id))
         flash(f'Successfully updated answer {answer}', category='success')
         return redirect(url_for('answers.read_answer', id=id))
@@ -68,7 +63,7 @@ def delete_answer(id):
             flash(f'Successfully deleted answer: {id}', 'success')
             return redirect(url_for('home'))
         elif request.method == 'GET':
-            return render_template('answer/delete.html', id=id)
+            return render_template('answers/delete.html', id=id)
     else:
         flash(f'this functionality is only available to admins', 'info')
         return redirect(url_for('home'))

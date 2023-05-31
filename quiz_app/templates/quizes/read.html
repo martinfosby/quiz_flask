@@ -63,25 +63,24 @@ read quiz
                                             </div>
                                         {% endfor %}
                                             #}
+                                    {% elif question['answer_type'] == 'essay' %}
+                                        <input type="hidden" name="type" value="essay">
+                                        {% for text_box in forms[question['id']].answer.entries %}
+                                            <div class="m-3">
+                                                {{ text_box.form.id() }}
+                                                {{ text_box.form.text(class="form-control mb-3") }}
+                                            </div>
+                                        {% endfor %}
+                                                {#
+                                                    #}
                                     {% endif %}
                                     {{ forms[question['id']].submit(class="btn btn-primary", id="submit-" + question_index|string) }}
-                                </form>
-                            {% else %}
-                                <form action="" method="post">
-                                    {{ forms[question['id']].csrf_token }}
-                                    <div class="m-3">
-                                        <input type="hidden" name="type" value="essay">
-                                        {{ forms[question['id']].answer(id="answer-" + question_index|string, class="form-control mb-3") }}
-                                        {{ forms[question['id']].submit(class="btn btn-primary", id="submit-" + question_index|string) }}
-                                    </div>
                                 </form>
                             {% endif %}
                             {% if is_admin %}
                                 <p>{{ question['category'] }}</p>
                                 <a href="{{ url_for('questions.update_question', id=question['id']) }}" class="btn btn-primary">update question</a>
-                                {% if question['answer_type'] != 'essay' %}
-                                    <a href="{{ url_for('answers.create_answer', quiz_id=quiz['id'], question_id=question['id']) }}" class="btn btn-primary">add answer</a>
-                                {% endif %}
+                                <a href="{{ url_for('answers.create_answer', quiz_id=quiz['id'], question_id=question['id']) }}" class="btn btn-primary">add answer</a>
                                 <a href="{{ url_for('questions.delete_question', id=question['id']) }}" class="btn btn-danger">delete question</a>
                             {% endif %}
 

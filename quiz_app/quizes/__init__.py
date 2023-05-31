@@ -113,10 +113,22 @@ def read_quiz(id):
                 answer = db_query_single("SELECT * FROM answer WHERE id=%s", [answer_id])
                 question_id = answer['question_id']
                 db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id) VALUES (%s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id])
+                flash('succesfully inserted answer', 'success')
             if not answer_ids:
                 flash('you must select at least one answer', 'danger')
         else:
-            essay = request.form.get('answer')
+            keys_values_ending_with_text = [value for key, value in request.form.items() if key.endswith('text')]
+            keys_values_ending_with_id = [value for key, value in request.form.items() if key.endswith('id')]
+
+            zipped_pairs = zip(keys_values_ending_with_id, keys_values_ending_with_text)
+
+            for key, value in zipped_pairs:
+                answer_id = key
+                question_id = db_query_single("SELECT question_id FROM answer WHERE id=%s", [answer_id])['question_id']
+                essay = value
+                db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id, essay) VALUES (%s, %s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id, essay])
+                flash('succesfully inserted answer', 'success')
+
         return redirect(url_for('quizes.read_quiz', id=id))
 
     if request.method == 'GET':
@@ -136,9 +148,14 @@ def read_quiz(id):
                     form = CheckBoxForm()
                     for answer in answers[question['id']]:
                         form.answer.choices.append((answer['id'], answer['answer']))
-            else:
-                form = TextForm()
-            forms[question['id']] = form
+                elif question['answer_type'] == 'essay':
+                    form = MultipleTextAreaForm()
+                    for answer in answers[question['id']]:
+                        form.answer.append_entry()
+                        form.answer.entries[-1].form.text.data = answer['answer']
+                        form.answer.entries[-1].form.id.data = str(answer['id'])
+
+                forms[question['id']] = form
         return render_template('quizes/read.html', quiz=quiz, questions=questions, answers=answers, forms=forms)
 
 

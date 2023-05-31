@@ -1,6 +1,7 @@
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, PasswordField, BooleanField, TextAreaField, FieldList, FormField, RadioField, SelectMultipleField, EmailField, widgets, validators
+from flask_wtf.form import _Auto
+from wtforms import StringField, SubmitField, SelectField, PasswordField, BooleanField, TextAreaField, FieldList, FormField, RadioField, SelectMultipleField, EmailField, widgets, validators, HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 user_length = 2
@@ -35,7 +36,7 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
 class AnswerForm(FlaskForm):
-    answer = StringField('Answer', validators=[DataRequired()])
+    answer = StringField('Answer')
     comment = TextAreaField('Comment')
     correct = BooleanField('Correct')
     submit = SubmitField('Submit answer')
@@ -63,8 +64,14 @@ class RadioForm(FlaskForm):
     submit = SubmitField('Submit answer')
 
 class TextForm(FlaskForm):
-    answer = TextAreaField('Answer', validators=[DataRequired()])
+    id = HiddenField()
+    text = TextAreaField()
+
+class MultipleTextAreaForm(FlaskForm):
+    answer = FieldList(FormField(TextForm), min_entries=0, validators=[DataRequired()])
     submit = SubmitField('Submit answer')
+
+
 
 class SelectForm(FlaskForm):
     answer = SelectMultipleField('Answer', choices=[('value1', 'Label1'), ('value2', 'Label2'), ('value3', 'Label3'), ('value4', 'Label4')])
