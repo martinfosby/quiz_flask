@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Flask, session, render_template, request, redirect, url_for, flash, g
 from flask_wtf.csrf import CSRFProtect
+from .utils import *
 from .users import users
 from .quizes import quizes
 from .questions import questions
@@ -15,6 +16,11 @@ app.register_blueprint(answers)
 app.config['SECRET_KEY'] = 'my_secret_key'
 csrf = CSRFProtect(app)
 
+@app.before_request
+def before_request():
+    # Store some data in g before each request
+    g.user = db_query_single('SELECT * FROM user WHERE id = %s', (session.get('id'),))
+
 
 # Define the context processor
 @app.context_processor
@@ -29,4 +35,4 @@ def inject_variables():
         is_regular = user.get('is_regular')
     
     # Define the variables to be available in all templates
-    return dict(is_admin=is_admin, is_anonymous=is_anonymous, is_regular=is_regular)
+    return dict(is_admin=is_admin, is_anonymous=is_anonymous, is_regular=is_regular, user=user)

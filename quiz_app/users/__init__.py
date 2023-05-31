@@ -1,4 +1,4 @@
-from flask import Blueprint, session, render_template, redirect, url_for, request, flash
+from flask import Blueprint, session, render_template, redirect, url_for, request, flash, g
 
 users = Blueprint('users', __name__, url_prefix='/users')
 
@@ -14,23 +14,40 @@ from ..mysql_cursor import *
 from ..db import *
 from ..utils import *
 
-import random
-from datetime import datetime
-from datetime import timedelta
-
-
 import werkzeug
-import random
-import uuid
 
-# @users.route('/', methods=['POST', 'GET'])
-# def home():
-#     if session.get('id'):
-#         user = get_user_by_id(session.get('id'))
-#         if 
-#         return render_template('home.html')
-#     else:
-#         return redirect(url_for('users.login_user_type'))
+
+# @users.after_request
+# def after_request(response):
+#     # Modify the response based on the data in g
+#     user = g.user
+#     response.headers['X-User'] = user
+
+@users.route('/', methods=['POST', 'GET'])
+@admin_required
+def home():
+    users = db_query_rows("SELECT * FROM user")
+    return render_template('users/home.html', users=users)
+
+
+@users.route('/profile')
+@login_required
+def profile():
+    # Access the user from the g object
+    user = g.user
+
+    # If the user is not stored in g, retrieve the user based on the session
+    if not user:
+        user_id = session.get('id')
+        if user_id:
+            user = get_user_by_id(user_id)
+            g.user = user
+
+    if user:
+        return f"Welcome, {user['username']}!"
+    else:
+        return 'Unauthorized'
+
 
 
 @users.route('/register', methods=["GET", "POST"])
@@ -55,20 +72,17 @@ def register():
 
 
 @users.route('/logout', methods=["GET", "POST"])
+@login_required
 def logout():
-    if session.get('id'):
-        user = get_user()
-        session.clear() # clear the rest
-        if user.get('is_admin'):
-            flash(f'logged out as admin {user.get("username")}', 'info')
-        elif user.get('is_regular'):
-            flash(f'logged out as user', 'info')
-        elif user.get('is_anonymous'):
-            flash(f'logged out as guest', 'info')
-        return redirect(url_for('home'))
-    else:
-        flash('not logged in', 'info')
-        return redirect(url_for('users.login'))
+    user = get_user()
+    session.clear() # clear the rest
+    if user.get('is_admin'):
+        flash(f'logged out as admin {user.get("username")}', 'info')
+    elif user.get('is_regular'):
+        flash(f'logged out as user', 'info')
+    elif user.get('is_anonymous'):
+        flash(f'logged out as guest', 'info')
+    return redirect(url_for('home'))
 
 
 @users.route('/login/user/type', methods=['GET', 'POST'])
@@ -100,7 +114,10 @@ def login():
             if user:
                 if werkzeug.security.check_password_hash(user.get('password_hash'), password):
                     session['id'] = user.get('id')
-                    flash(f'Successfully logged in as admin {username}', category='success')
+                    if user.get('is_admin'):
+                        flash(f'Successfully logged in as admin {username}', category='success')
+                    else:
+                        flash(f'Successfully logged in as user {username}', category='success')
                     return redirect(url_for('home'))
                 else:
                     flash('Incorrect password', category='error')
@@ -114,55 +131,43 @@ def login():
         return redirect(url_for('home'))
 
 
-@users.route('/list', methods=['POST', 'GET'])
-def list():
-    if session.get('logged_in'):
-        users = db_query_rows("SELECT * FROM user")
-        return render_template('admin_dashboard_users.html', users=users)
-    else:
-        flash('You are not authorized to access this page', category='error')
-        return redirect(url_for('/'))
 
 @users.route('/create', methods=['POST', 'GET'])
+@admin_required
 def create():
-    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
-    if user.get('is_admin'):
-        form = QuizForm()
-        if form.validate_on_submit():
-            title = form.title.data
-            active = form.active.data
-            comment = form.comment.data
-            conn = db_get_connection()
-            cursor = conn.cursor()
-            cursor.execute('''INSERT INTO quiz (title, active, comment) VALUES (%s, %s, %s);''', [title, active, comment])
-            quiz_id = cursor.lastrowid
-            conn.commit();cursor.close();conn.close()
-            flash(f'successfully created quiz {title}', 'success')
-            return redirect(url_for('questions.create_question', quiz_id=quiz_id))
-        return render_template('quizes/create.html', form=form)
-    else:
-        flash('you are not an admin', 'danger')
-        return redirect(url_for('home'))
+    form = QuizForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        active = form.active.data
+        comment = form.comment.data
+        conn = db_get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''INSERT INTO quiz (title, active, comment) VALUES (%s, %s, %s);''', [title, active, comment])
+        quiz_id = cursor.lastrowid
+        conn.commit();cursor.close();conn.close()
+        flash(f'successfully created quiz {title}', 'success')
+        return redirect(url_for('questions.create_question', quiz_id=quiz_id))
+    return render_template('quizes/create.html', form=form)
 
 @users.route('/update/<int:id>', methods=['POST', 'GET'])
+@admin_required
 def update(id):
-    if check_admin():
-        form = QuizForm()
-        if form.validate_on_submit():
-            title = form.title.data
-            active = form.active.data
-            comment = form.comment.data
-            db_exec('''UPDATE quiz SET title=%s, active=%s, comment=%s WHERE id=%s''', [title, active, comment, id])
-            flash(f'successfully edited quiz{title}', 'success')
-            return redirect(url_for('home'))
+    form = QuizForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        active = form.active.data
+        comment = form.comment.data
+        db_exec('''UPDATE quiz SET title=%s, active=%s, comment=%s WHERE id=%s''', [title, active, comment, id])
+        flash(f'successfully edited quiz{title}', 'success')
+        return redirect(url_for('home'))
         
-        if request.method == 'GET':
-            quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
-            form.title.data = quiz['title']
-            form.active.data = quiz['active']
-            form.comment.data = quiz['comment']
+    if request.method == 'GET':
+        quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
+        form.title.data = quiz['title']
+        form.active.data = quiz['active']
+        form.comment.data = quiz['comment']
 
-            return render_template('quizes/update.html', form=form)
+        return render_template('quizes/update.html', form=form)
 
 @users.route('/read/<int:id>', methods=['POST', 'GET'])
 def read(id):
@@ -173,13 +178,10 @@ def read(id):
 
 
 @users.route('/delete/<int:id>', methods=['POST', 'GET'])
+@admin_required
 def delete(id):
     # delete on cascade
     user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
-    if user.get('is_admin'):
-        db_exec('''DELETE FROM user WHERE id=%s''', [id])
-        flash(f'Successfully deleted user: {id}', 'success')
-        return redirect(url_for('home'))
-    else:
-        flash(f'this functionality is only available to admins', 'info')
-        return redirect(url_for('home'))
+    db_exec('''DELETE FROM user WHERE id=%s''', [id])
+    flash(f'Successfully deleted user: {id}', 'success')
+    return redirect(url_for('home'))

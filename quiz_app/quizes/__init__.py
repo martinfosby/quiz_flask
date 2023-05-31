@@ -113,7 +113,7 @@ def read_quiz(id):
                 answer = db_query_single("SELECT * FROM answer WHERE id=%s", [answer_id])
                 question_id = answer['question_id']
                 db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id) VALUES (%s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id])
-                flash('succesfully inserted answer', 'success')
+                flash('succesfully inserted answer {answer_id}', 'success')
             if not answer_ids:
                 flash('you must select at least one answer', 'danger')
         else:
@@ -127,7 +127,7 @@ def read_quiz(id):
                 question_id = db_query_single("SELECT question_id FROM answer WHERE id=%s", [answer_id])['question_id']
                 essay = value
                 db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id, essay) VALUES (%s, %s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id, essay])
-                flash('succesfully inserted answer', 'success')
+                flash('succesfully inserted answer {answer_id}', 'success')
 
         return redirect(url_for('quizes.read_quiz', id=id))
 

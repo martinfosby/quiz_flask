@@ -17,8 +17,8 @@ admin quiz
     {% for user in users %}
         <div class="container my-4" id="quiz-{{ loop.index0 }}">
             <ul class="list-group">
-                <li class="list-group-item bg-dark text-white"><strong>User ID:</strong> {{ user[0] }}</li>
-                <li class="list-group-item bg-light"><strong>Username:</strong> {{ user[1] }}</li>
+                <li class="list-group-item bg-dark text-white"><strong>User ID:</strong> {{ user['id'] }}</li>
+                <li class="list-group-item bg-light"><strong>Username:</strong> {{ user['username'] }}</li>
             </ul>
         </div>
     {% endfor %}

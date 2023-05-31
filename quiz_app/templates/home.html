@@ -13,7 +13,7 @@ Home
     {% endwith %}  
     {% if is_admin %}
         <h1>Welcome admin</h1>
-        <a href="{{url_for('users.list')}}">browse users</a><br>
+        <a href="{{url_for('users.home')}}">browse users</a><br>
     {% elif is_anonymous %}
         <h1>Welcome guest</h1>
     {% elif is_regular %}
