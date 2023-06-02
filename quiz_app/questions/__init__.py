@@ -127,8 +127,11 @@ def read_question(id):
                     form.answer.entries[-1].form.id.data = str(answer['id'])
             else:
                 abort(404)
+            return render_template('questions/read.html', question=question, answers=answers, form=form)
+        else:
+            flash('question is empty', 'danger')
+            return redirect(url_for('quizes.read_quiz', id=quiz_id))
 
-    return render_template('questions/read.html', question=question, answers=answers, form=form)
 
 
 @questions.route('/update/<int:id>', methods=['POST', 'GET'])
