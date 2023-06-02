@@ -16,7 +16,41 @@ Quizes home
         <div class="card m-3">
             <div class="card-body">
                 <h5 class="card-title">{{ quiz.title }}</h5>
-                <p class="card-text">{{ quiz.comment }}</p>
+                {% if current_user_quizes %}
+                    {% if current_user_quizes.get(quiz.id).is_completed %}
+                        <span class="badge bg-success">completed</span>
+                        {% if current_user_quizes.get(quiz.id) %}
+                            <div class="alert alert-success">
+                                {{ current_user_quizes.get(quiz.id).comment }}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-warning">not completed</span>
+                    {% endif %} 
+                {% else %}
+                    <span class="badge bg-warning">not completed</span>
+                {% endif %}
+                {% if is_admin %}
+                    <div class="container">
+                        <h6>Users in this quiz</h6>
+                        {% if users_quizes.get(quiz.id) %}
+                            {% for uq in users_quizes.get(quiz.id) %}
+                                <div class="row">
+                                    <div class="col">user id: {{ uq.user_id }}</div>
+                                    <div class="col">username: {{ uq.username }}</div>
+                                    <div class="col">quiz id: {{ uq.quiz_id }}</div>
+                                    <div class="col">completed: {{ uq.is_completed }}</div>
+                                    <div class="col">approved: {{ uq.approved }}</div>
+                                    <div class="col"><a href="{{ url_for('quizes.approve', user_id=uq.user_id, quiz_id=quiz.id, approved=1) }}" class="btn btn-success">Approve</a></div>
+                                    <div class="col"><a href="{{ url_for('quizes.approve', user_id=uq.user_id, quiz_id=quiz.id, approved=0) }}" class="btn btn-danger">Reject</a></div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endif %}
+                    
+                <div class="card-footer">
+
                     <a href="{{ url_for('quizes.read_quiz', id=quiz.id) }}" class="btn btn-primary col">Read</a>
                     {% if is_admin %}
                         <a href="{{ url_for('questions.create_question', quiz_id=quiz.id) }}" class="btn btn-primary">Add question</a>

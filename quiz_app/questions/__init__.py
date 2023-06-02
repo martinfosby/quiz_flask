@@ -28,6 +28,26 @@ def approve(user_id, question_id, approved, quiz_id, answer_id):
         return redirect(url_for('quizes.review', id=quiz_id))
     return render_template('questions/approve.html', form=form)
 
+# @questions.route('/review/<int:id>', methods=['POST', 'GET'])
+# def review(id):
+#     quiz_id = db_query_single("SELECT quiz_id FROM question WHERE id=%s", [id])
+#     quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [quiz_id])
+#     questions = db_query_rows('''SELECT * FROM question WHERE id IN (SELECT DISTINCT(answer_question_id) FROM user_has_answer WHERE answer_question_quiz_id=%s);''', [id])
+#     user_has_question = db_query_rows('''SELECT * FROM user_has_question WHERE question_quiz_id=%s;''', [id])
+#     # user_ids = [user['user_id'] for user in user_has_question]
+
+#     users_answers = {}
+#     for question in questions:
+#         users_answers[question['id']] = db_query_rows('''
+#         SELECT user_id, answer_id, answer_question_id as question_id, answer_question_quiz_id as quiz_id, username, answer.answer, question.title, question.content, question.answer_type, question.category
+#         FROM user_has_answer 
+#         INNER JOIN user ON user_id=user.id 
+#         INNER JOIN answer ON answer_id=answer.id
+#         INNER JOIN question ON question_id=question.id
+#         WHERE answer_question_id=%s;''', [question['id']])
+    
+#     return render_template('quizes/review.html', users_answers=users_answers, quiz=quiz)
+
 @questions.route('/create/<int:quiz_id>', methods=['POST', 'GET'])
 @admin_required
 def create_question(quiz_id):

@@ -41,3 +41,12 @@ def inject_variables():
     
     # Define the variables to be available in all templates
     return dict(is_admin=is_admin, is_anonymous=is_anonymous, is_regular=is_regular, user=user)
+
+
+@app.route('/all-urls')
+def all_urls():
+    routes = []
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            routes.append(str(rule))
+    return '<br>'.join(routes)

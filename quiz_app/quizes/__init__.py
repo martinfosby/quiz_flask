@@ -22,8 +22,25 @@ quizes = Blueprint('quizes', __name__, url_prefix='/quizes')
 @quizes.route('/home')
 @quizes.route('/')
 def home():
+    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
     quizes = db_query_rows("SELECT * FROM quiz")
-    return render_template('quizes/home.html', quizes=quizes)
+
+    current_user_has_quiz = db_query_rows("SELECT * FROM user_has_quiz INNER JOIN user ON user_id=user.id WHERE user_id=%s", [session.get('id')])
+    current_user_quizes = {}
+    if current_user_has_quiz:
+        for list in current_user_has_quiz:
+            current_user_quizes[list['quiz_id']] = db_query_single("SELECT * FROM user_has_quiz INNER JOIN user ON user_id=user.id WHERE quiz_id=%s", [list['quiz_id']])
+
+    if user.get('is_admin'):
+        user_has_quiz = db_query_rows("SELECT * FROM user_has_quiz INNER JOIN user ON user_id=user.id")
+        users_quizes = {}
+        for list in user_has_quiz:
+            users_quizes[list['quiz_id']] = db_query_rows("SELECT * FROM user_has_quiz INNER JOIN user ON user_id=user.id WHERE quiz_id=%s", [list['quiz_id']])
+
+        return render_template('quizes/home.html', quizes=quizes, users_quizes=users_quizes, current_user_quizes=current_user_quizes)
+    else:
+        return render_template('quizes/home.html', quizes=quizes, current_user_quizes=current_user_quizes)
+
 
 @quizes.route('/user/answers', methods=['GET'])
 def quiz():
@@ -94,17 +111,28 @@ def update_quiz(id):
 
         return render_template('quizes/update.html', form=form)
 
+@quizes.route('/<user_id>/quiz/<int:quiz_id>/approve/<int:approved>', methods=['POST', 'GET'])
+@admin_required
+def approve(user_id, approved, quiz_id):
+    form = TextAreaForm()
+    if form.validate_on_submit():
+        comment = form.text.data
+        db_exec('''UPDATE user_has_quiz SET approved=%s, comment=%s WHERE user_id=%s AND quiz_id=%s''', [approved, comment, user_id, quiz_id])
+        flash(f'Successfully approved quiz {quiz_id}', category='success')
+        return redirect(url_for('quizes.home'))
+    return render_template('quizes/approve.html', form=form)
+
 @quizes.route('/review/<int:id>', methods=['POST', 'GET'])
 def review(id):
     quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
-    # users_answers = db_query_rows('''SELECT * FROM user_has_answer WHERE answer_question_quiz_id=%s ORDER BY answer_question_id;''', [id])
-    # questions_ids = db_query_rows('''SELECT DISTINCT(answer_question_id) FROM user_has_answer WHERE answer_question_quiz_id=%s;''', [id])
     questions = db_query_rows('''SELECT * FROM question WHERE id IN (SELECT DISTINCT(answer_question_id) FROM user_has_answer WHERE answer_question_quiz_id=%s);''', [id])
+    user_has_question = db_query_rows('''SELECT * FROM user_has_question WHERE question_quiz_id=%s;''', [id])
+    # user_ids = [user['user_id'] for user in user_has_question]
 
     users_answers = {}
     for question in questions:
         users_answers[question['id']] = db_query_rows('''
-        SELECT user_id, answer_id, answer_question_id as question_id, answer_question_quiz_id as quiz_id, username, answer.answer, question.title, question.content, question.answer_type, question.category
+        SELECT user_id, answer_id, answer_question_id as question_id, answer_question_quiz_id as quiz_id, essay, username, answer.answer, question.title, question.content, question.answer_type, question.category
         FROM user_has_answer 
         INNER JOIN user ON user_id=user.id 
         INNER JOIN answer ON answer_id=answer.id
@@ -115,6 +143,7 @@ def review(id):
 
 @quizes.route('/read/<int:id>', methods=['POST', 'GET'])
 def read_quiz(id):
+    user_id=session.get('id')
     if request.method == 'POST':
         if request.form.get('type') != 'essay':
             answer_ids = request.form.getlist('answer')
@@ -138,14 +167,26 @@ def read_quiz(id):
                 question_id = db_query_single("SELECT question_id FROM answer WHERE id=%s", [answer_id])['question_id']
                 essay = value
                 db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id, essay) VALUES (%s, %s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id, essay])
-                db_exec('''INSERT INTO user_has_question (user_id, question_id, question_quiz_id, is_answered) VALUES (%s, %s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id, 1])
+                db_exec('''INSERT INTO user_has_question (user_id, question_id, question_quiz_id, is_answered) VALUES (%s, %s, %s, %s)''', [session.get('id'), question_id, id, 1])
                 flash(f'succesfully inserted answer {answer_id} for question {question_id} for quiz {id}', 'success')
 
         return redirect(url_for('quizes.read_quiz', id=id))
 
     if request.method == 'GET':
         quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
+        quiz_completed = db_query_single("SELECT * FROM user_has_quiz WHERE user_id=%s AND quiz_id=%s", [session.get('id'), id])
+        if quiz_completed:
+            if quiz_completed.get( 'is_completed' ):
+                flash(f'you have completed all questions from {quiz.get("title")}', 'success')
+                return redirect(url_for('quizes.home'))
         questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [id])
+        # questions_not_answered = db_query_rows("SELECT question.*, user_id, is_answered FROM `question` LEFT JOIN user_has_question as uhq ON id=uhq.question_id WHERE uhq.is_answered IS NULL AND quiz_id = %s", [id])
+        # if not questions_not_answered:
+        #     db_exec('''INSERT INTO user_has_quiz (user_id, quiz_id, is_completed) VALUES (%s, %s, %s)''', [session.get('id'), id, 1])
+        #     flash('you have completed all questions', 'success')
+        #     return redirect(url_for('quizes.home'))
+        # if id not in [q['id'] for q in questions_not_answered]:
+        #     return redirect(url_for('questions.read_question', id=questions_not_answered[0]['id'], quiz_id=id))
         # answers = db_query_rows("SELECT * FROM answer WHERE question_quiz_id=%s", [id])
         answers = {}
         forms = {}

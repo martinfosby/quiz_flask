@@ -16,7 +16,11 @@ quiz review
                     <div class="row row-black">
                         <div class="col">user id: {{ answer.user_id }}</div>
                         <div class="col">username: {{ answer.username }}</div>
+                        {% if answer.answer_type == 'essay'%}
+                            <div class="col">answer: {{ answer.essay }}</div>
+                        {% else %}
                         <div class="col">answer: {{ answer.answer }}</div>
+                        {% endif %}
                         <div class="col">answer type: {{ answer.answer_type }}</div>
                         <div class="col">answer id: {{ answer.answer_id }}</div>
                         <div class="col"><a class='btn btn-success'href="{{ url_for('questions.approve', user_id=answer.user_id, question_id=question_id, answer_id=answer.answer_id, quiz_id=quiz.id, approved=1) }}">approve</a></div>

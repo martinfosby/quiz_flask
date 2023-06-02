@@ -1,0 +1,31 @@
+dagbok av Martin Johan Holand Fosby
+
+13 mai 2023:
+    første versjon
+    estimert tid: 1 dag
+
+16 mai 2023:
+    startet med å lage blueprints plus har skrevet kode for quiz 
+    estimert tid: 1 dag
+
+17 mai 2023:
+    omgjorte register ved bruk av litt javascript
+    har alt i en side for å gjøre det enkelt
+    kan bli admin ved å trykke på en knapp
+    så kan man skrive fornavn og etternavn
+    plus har endret litt på database modellen
+    estimert tid: 2 dag
+
+20 mai 2023:
+    organisert koden bedre og fikset noen bugs
+    estimert tid: 1 dag
+
+22 mai 2023:
+    oppdatert er-diagram plus lagt til kode
+    estimert tid: 1 dag
+
+23 mai 2023:
+    oppdatert modellen plus lagt til ekstra kode
+    forandret 14 filer med 219 additions og 218 deletions
+    estimert tid: 1 dag
+

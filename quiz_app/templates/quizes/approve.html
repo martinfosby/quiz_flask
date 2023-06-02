@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}
+question approve
+{% endblock %}
+{% block content %}
+{% include "flash_messages.html" %}
+    <h1>quiz approve</h1>
+    <form action="" method="post">
+        {{ form.csrf_token }}
+        <div class="card m-3">
+            <div class="card-body">
+                <h2>Add a comment</h2>
+                {{ form.id() }}
+                {{ form.text(class="form-control mb-3") }}
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </div>
+    </form>
+{% endblock %}
