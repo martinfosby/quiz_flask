@@ -5,11 +5,12 @@ quiz review
 {% block content %}
     {% include "flash_messages.html" %}
     <h1>{{ quiz.title }} review</h1>
+    <h1>quiz id: {{ quiz.id }}</h1>
 
     {% for question_id, answers in users_answers.items() %}
         <div class="card m-3">
             <div class="card-body">
-                <h2>{{ users_answers[question_id][0].title }}</h2>
+                <h2>{{ users_answers[question_id][0].title }} id: {{ question_id }}</h2>
                 <h3>{{ users_answers[question_id][0].content }}</h3>
                 {% for answer in answers %}
                     <div class="row row-black">
@@ -17,6 +18,11 @@ quiz review
                         <div class="col">username: {{ answer.username }}</div>
                         <div class="col">answer: {{ answer.answer }}</div>
                         <div class="col">answer type: {{ answer.answer_type }}</div>
+                        <div class="col">answer id: {{ answer.answer_id }}</div>
+                        <div class="col"><a class='btn btn-success'href="{{ url_for('questions.approve', user_id=answer.user_id, question_id=question_id, answer_id=answer.answer_id, quiz_id=quiz.id, approved=1) }}">approve</a></div>
+                        <div class="col"><a class='btn btn-danger'href="{{ url_for('questions.approve', user_id=answer.user_id, question_id=question_id, answer_id=answer.answer_id, quiz_id=quiz.id, approved=0) }}">reject</a></div>
+                        {#
+                            #}
                     </div>
                 {% endfor %}
             </div>

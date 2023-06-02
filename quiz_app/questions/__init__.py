@@ -17,6 +17,17 @@ def home():
     questions = db_query_rows("SELECT * FROM question")
     return render_template('questions/home.html', questions=questions)
 
+@questions.route('/<user_id>/quiz/<int:quiz_id>/approve/<int:question_id>/<int:approved>/<int:answer_id>', methods=['POST', 'GET'])
+@admin_required
+def approve(user_id, question_id, approved, quiz_id, answer_id):
+    form = TextAreaForm()
+    if form.validate_on_submit():
+        comment = form.text.data
+        db_exec('''UPDATE user_has_question SET approved=%s, comment=%s WHERE user_id=%s AND question_id=%s AND question_quiz_id=%s''', [approved, comment, user_id, question_id, quiz_id])
+        flash(f'Successfully approved question {question_id} for quiz {quiz_id}', category='success')
+        return redirect(url_for('quizes.review', id=quiz_id))
+    return render_template('questions/approve.html', form=form)
+
 @questions.route('/create/<int:quiz_id>', methods=['POST', 'GET'])
 @admin_required
 def create_question(quiz_id):
@@ -72,7 +83,8 @@ def read_question(id):
 
         questions_not_answered = db_query_rows("SELECT question.*, user_id, is_answered FROM `question` LEFT JOIN user_has_question as uhq ON id=uhq.question_id WHERE uhq.is_answered IS NULL AND quiz_id = %s", [quiz_id])
         if not questions_not_answered:
-            db_exec('''INSERT INTO user_has_quiz (user_id, quiz_id, is_completed) VALUES (%s)''', [quiz_id, 1])
+            flash('you have completed all questions', 'danger')
+            db_exec('''INSERT INTO user_has_quiz (user_id, quiz_id, is_completed) VALUES (%s)''', [session.get('id'), quiz_id, 1])
             return redirect(url_for('quizes.home'))
         if id not in [q['id'] for q in questions_not_answered]:
             return redirect(url_for('questions.read_question', id=questions_not_answered[0]['id'], quiz_id=quiz_id))

@@ -61,6 +61,11 @@ class RadioForm(FlaskForm):
     answer = RadioField('Answer', choices=[], validators=[DataRequired()])
     submit = SubmitField('Submit answer')
 
+class TextAreaForm(FlaskForm):
+    id = HiddenField()
+    text = TextAreaField()
+    submit = SubmitField('Submit')
+
 class TextForm(FlaskForm):
     id = HiddenField()
     text = TextAreaField()
