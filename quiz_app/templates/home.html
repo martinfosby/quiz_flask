@@ -4,13 +4,8 @@ Home
 {% endblock %}
 
 {% block content %}
-    {% with messages = get_flashed_messages() %}  
-        {% if messages %}  
-            {% for message in messages %}  
-                    <p>{{ message }}</p>  
-            {% endfor %}  
-        {% endif %}  
-    {% endwith %}  
+    {% include "flash_messages.html" %}
+
     {% if is_admin %}
         <h1>Welcome admin</h1>
         <a href="{{url_for('users.home')}}">browse users</a><br>

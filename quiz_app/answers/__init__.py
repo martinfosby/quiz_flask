@@ -8,18 +8,26 @@ from ..utils import *
 
 answers = Blueprint('answers', __name__, url_prefix='/answers')
 
-@answers.route('/create/<int:quiz_id>/<int:question_id>', methods=['POST', 'GET'])
-def create_answer(quiz_id, question_id):
+@answers.route('/create/<int:question_id>', methods=['POST', 'GET'])
+def create_answer(question_id):
+    question = db_query_single("SELECT * FROM question WHERE id=%s", [question_id])
+    if request.args.get('quiz_id'):
+        quiz_id = request.args.get('quiz_id')
+    else:
+        quiz_id = question.get('quiz_id')
     form = AnswerForm()
     if form.validate_on_submit():
-        answer = form.answer.data
-        comment = form.comment.data
-        correct = form.correct.data
-        answer_id = db_exec('''INSERT INTO answer (question_id, question_quiz_id, answer, comment, correct) 
-        VALUES (%s, %s, %s, %s, %s)''', 
-        (question_id, quiz_id, answer, comment, correct))
-        flash(f'Successfully created answer {answer} for question {question_id} for quiz {quiz_id}', category='success')
-        return redirect(url_for('answers.create_answer', quiz_id=quiz_id, question_id=question_id))
+        if request.form.get('submit') == 'Back':
+            return redirect(url_for('questions.read_question', id=question_id))
+        else:
+            answer = form.answer.data
+            answer_id = db_exec('''INSERT INTO answer (question_id, question_quiz_id, answer) 
+            VALUES (%s, %s, %s)''', 
+            (question_id, quiz_id, answer))
+            if not answer_id:
+                abort(500)
+            flash(f'Successfully created answer {answer} for question {question_id} for quiz {quiz_id}', category='success')
+            return redirect(url_for('answers.create_answer', quiz_id=quiz_id, question_id=question_id))
     return render_template('answers/create.html', form=form, quiz_id=quiz_id, question_id=question_id)
 
 @answers.route('/read/<int:quiz_id>/<int:question_id>', methods=['GET'])

@@ -21,15 +21,8 @@ create answer
         <div class="mb-3">
             {{ form.answer.label(class="form-label") }} {{ form.answer(class="form-control") }} 
         </div>
-        <div class="mb-3">
-            {{ form.comment.label(class="form-label") }} 
-            {{ form.comment(class="form-control") }} 
-        </div>
-        <div class="mb-3">
-            {{ form.correct.label(class="form-label") }} 
-            {{ form.correct(class="form-check") }} 
-        </div>
         {{ form.submit(class="btn btn-primary")}}
+        {{ form.submit(class="btn btn-primary", value="Back")}}
     </fieldset>
     </form>
 {% endblock %}

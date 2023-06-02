@@ -61,25 +61,16 @@ def quiz():
         return render_template('admin_dashboard_quiz.html', quiz_answers=quiz_answers)
 
 @quizes.route('/create', methods=['POST', 'GET'])
+@admin_required
 def create_quiz():
-    user = db_query_single("SELECT * FROM user WHERE id=%s", [session.get('id')])
-    if user.get('is_admin'):
-        form = QuizForm()
-        if form.validate_on_submit():
-            title = form.title.data
-            active = form.active.data
-            comment = form.comment.data
-            conn = db_get_connection()
-            cursor = conn.cursor()
-            cursor.execute('''INSERT INTO quiz (title, active, comment) VALUES (%s, %s, %s);''', [title, active, comment])
-            quiz_id = cursor.lastrowid
-            conn.commit();cursor.close();conn.close()
-            flash(f'successfully created quiz {title}', 'success')
-            return redirect(url_for('questions.create_question', quiz_id=quiz_id))
-        return render_template('quizes/create.html', form=form)
-    else:
-        flash('you are not an admin', 'danger')
-        return redirect(url_for('home'))
+    form = QuizForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        active = form.active.data
+        quiz_id = db_exec('''INSERT INTO quiz (title, active) VALUES (%s, %s);''', [title, active])
+        flash(f'successfully created quiz {title}', 'success')
+        return redirect(url_for('questions.create_question', quiz_id=quiz_id))
+    return render_template('quizes/create.html', form=form)
 
 @quizes.route('/update/<int:id>', methods=['POST', 'GET'])
 def update_quiz(id):
@@ -103,6 +94,25 @@ def update_quiz(id):
 
         return render_template('quizes/update.html', form=form)
 
+@quizes.route('/review/<int:id>', methods=['POST', 'GET'])
+def review(id):
+    quiz = db_query_single("SELECT * FROM quiz WHERE id=%s", [id])
+    # users_answers = db_query_rows('''SELECT * FROM user_has_answer WHERE answer_question_quiz_id=%s ORDER BY answer_question_id;''', [id])
+    # questions_ids = db_query_rows('''SELECT DISTINCT(answer_question_id) FROM user_has_answer WHERE answer_question_quiz_id=%s;''', [id])
+    questions = db_query_rows('''SELECT * FROM question WHERE id IN (SELECT DISTINCT(answer_question_id) FROM user_has_answer WHERE answer_question_quiz_id=%s);''', [id])
+
+    users_answers = {}
+    for question in questions:
+        users_answers[question['id']] = db_query_rows('''
+        SELECT user_id, answer_id, answer_question_id as question_id, answer_question_quiz_id as quiz_id, username, answer.answer, question.title, question.content, question.answer_type, question.category
+        FROM user_has_answer 
+        INNER JOIN user ON user_id=user.id 
+        INNER JOIN answer ON answer_id=answer.id
+        INNER JOIN question ON question_id=question.id
+        WHERE answer_question_id=%s;''', [question['id']])
+    
+    return render_template('quizes/review.html', users_answers=users_answers, quiz=quiz)
+
 @quizes.route('/read/<int:id>', methods=['POST', 'GET'])
 def read_quiz(id):
     if request.method == 'POST':
@@ -113,7 +123,8 @@ def read_quiz(id):
                 answer = db_query_single("SELECT * FROM answer WHERE id=%s", [answer_id])
                 question_id = answer['question_id']
                 db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id) VALUES (%s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id])
-                flash('succesfully inserted answer {answer_id}', 'success')
+                db_exec('''INSERT INTO user_has_question (user_id, question_id, question_quiz_id, is_answered) VALUES (%s, %s, %s, %s)''', [session.get('id'), question_id, id, 1])
+                flash(f'succesfully inserted answer {answer_id} for question {question_id} for quiz {id}', 'success')
             if not answer_ids:
                 flash('you must select at least one answer', 'danger')
         else:
@@ -127,7 +138,8 @@ def read_quiz(id):
                 question_id = db_query_single("SELECT question_id FROM answer WHERE id=%s", [answer_id])['question_id']
                 essay = value
                 db_exec('''INSERT INTO user_has_answer (user_id, answer_id, answer_question_id, answer_question_quiz_id, essay) VALUES (%s, %s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id, essay])
-                flash('succesfully inserted answer {answer_id}', 'success')
+                db_exec('''INSERT INTO user_has_question (user_id, question_id, question_quiz_id, is_answered) VALUES (%s, %s, %s, %s, %s)''', [session.get('id'), answer_id, question_id, id, 1])
+                flash(f'succesfully inserted answer {answer_id} for question {question_id} for quiz {id}', 'success')
 
         return redirect(url_for('quizes.read_quiz', id=id))
 
@@ -137,7 +149,9 @@ def read_quiz(id):
         # answers = db_query_rows("SELECT * FROM answer WHERE question_quiz_id=%s", [id])
         answers = {}
         forms = {}
+        is_answered = {}
         for question in questions:
+            is_answered[question['id']] = db_query_single("SELECT is_answered FROM user_has_question WHERE user_id=%s AND question_id=%s AND question_quiz_id=%s", [session.get('id'), question['id'], id])
             answers[question['id']] = db_query_rows("SELECT * FROM answer WHERE question_id=%s AND question_quiz_id=%s ORDER BY RAND()", [question['id'], id])
             if answers[question['id']]:
                 if question['answer_type'] == 'single':
@@ -156,7 +170,7 @@ def read_quiz(id):
                         form.answer.entries[-1].form.id.data = str(answer['id'])
 
                 forms[question['id']] = form
-        return render_template('quizes/read.html', quiz=quiz, questions=questions, answers=answers, forms=forms)
+        return render_template('quizes/read.html', quiz=quiz, questions=questions, answers=answers, forms=forms, is_answered=is_answered)
 
 
 @quizes.route('/delete/<int:id>', methods=['POST', 'GET'])
@@ -182,103 +196,103 @@ def delete_quiz(id):
 
 
 
-@quizes.route('/<int:quiz_id>', methods=['POST', 'GET'])
-@quizes.route('/quiz', methods=['POST', 'GET'])
-def quiz_view(quiz_id = 1):
-    with QuizRegister() as qr:
-        quiz = qr.get_quiz_by_id(quiz_id)
-        length_quizes = qr.get_length_all_quizes()[0] # used later
+# @quizes.route('/<int:quiz_id>', methods=['POST', 'GET'])
+# @quizes.route('/quiz', methods=['POST', 'GET'])
+# def quiz_view(quiz_id = 1):
+#     with QuizRegister() as qr:
+#         quiz = qr.get_quiz_by_id(quiz_id)
+#         length_quizes = qr.get_length_all_quizes()[0] # used later
 
-    with AnswerRegister() as ar:
-        quiz_id = quiz[0]
-        answers = ar.get_answer_dict_by_quiz_id(quiz_id)
-        random.shuffle(answers)
-        quiz = list(quiz)
-        quiz.append(answers)
+#     with AnswerRegister() as ar:
+#         quiz_id = quiz[0]
+#         answers = ar.get_answer_dict_by_quiz_id(quiz_id)
+#         random.shuffle(answers)
+#         quiz = list(quiz)
+#         quiz.append(answers)
 
-    if request.method == 'GET':
-        form = SelectForm()
-        # reset form.answer.choices
-        if form.answer.choices:
-            form.answer.choices = []
+#     if request.method == 'GET':
+#         form = SelectForm()
+#         # reset form.answer.choices
+#         if form.answer.choices:
+#             form.answer.choices = []
 
-        for answer in quiz[6]:
-            form.answer.choices.append((answer['correct'], answer['answer'], answer['id']))
+#         for answer in quiz[6]:
+#             form.answer.choices.append((answer['correct'], answer['answer'], answer['id']))
 
-        return render_template('user_dashboard_quiz_view.html', quiz=quiz , form=form, length_quizes=length_quizes)
+#         return render_template('user_dashboard_quiz_view.html', quiz=quiz , form=form, length_quizes=length_quizes)
 
-    if request.method == 'POST':
+#     if request.method == 'POST':
 
-        submit = request.form['submit']
+#         submit = request.form['submit']
 
-        if not session.get('quiz_answers'):
-            session['quiz_answers'] = []
-        session_answer = session['quiz_answers']
+#         if not session.get('quiz_answers'):
+#             session['quiz_answers'] = []
+#         session_answer = session['quiz_answers']
 
-        if request.form.get('answer'):
-            form_answer, form_label, form_answer_id, form_quiz_title = eval(request.form['answer'])
-            # session[f'quiz-{quiz_id}-answers'] = (form_answer, form_label, form_answer_id, form_quiz_title)
-            session_answer.append((form_answer, form_label, form_answer_id, form_quiz_title))
-            session['quiz_answers'] = session_answer
-        else:
-            session_answer.append((None, None, None, None))
-            session['quiz_answers'] = session_answer
+#         if request.form.get('answer'):
+#             form_answer, form_label, form_answer_id, form_quiz_title = eval(request.form['answer'])
+#             # session[f'quiz-{quiz_id}-answers'] = (form_answer, form_label, form_answer_id, form_quiz_title)
+#             session_answer.append((form_answer, form_label, form_answer_id, form_quiz_title))
+#             session['quiz_answers'] = session_answer
+#         else:
+#             session_answer.append((None, None, None, None))
+#             session['quiz_answers'] = session_answer
 
 
-        if submit == 'prev':
-            return redirect(url_for('user_dashboard_quiz_view', quiz_id=quiz_id-1))
-        elif submit == 'next':
-            return redirect(url_for('user_dashboard_quiz_view', quiz_id=quiz_id+1))
-        elif submit == 'send in':
-            user_id = session['id']
-            with UserHasAnswer() as uha:
-                for answer in session['quiz_answers']:
-                    answer_id = answer[2]
-                    inserted = uha.insert_into(user_id, answer_id)
+#         if submit == 'prev':
+#             return redirect(url_for('user_dashboard_quiz_view', quiz_id=quiz_id-1))
+#         elif submit == 'next':
+#             return redirect(url_for('user_dashboard_quiz_view', quiz_id=quiz_id+1))
+#         elif submit == 'send in':
+#             user_id = session['id']
+#             with UserHasAnswer() as uha:
+#                 for answer in session['quiz_answers']:
+#                     answer_id = answer[2]
+#                     inserted = uha.insert_into(user_id, answer_id)
             
-            del session['quiz_answers']
-            flash(f'You have sent in all your answers', category='success')
-            return redirect(url_for('user_dashboard'))
-        elif submit == 'exit':
-            del session['quiz_answers']
-            flash(f'You have exited no answer have been submited', category='danger')
-            return redirect(url_for('user_dashboard'))
+#             del session['quiz_answers']
+#             flash(f'You have sent in all your answers', category='success')
+#             return redirect(url_for('user_dashboard'))
+#         elif submit == 'exit':
+#             del session['quiz_answers']
+#             flash(f'You have exited no answer have been submited', category='danger')
+#             return redirect(url_for('user_dashboard'))
 
 
 
 
-@quizes.route('/list', methods=['POST', 'GET'])
-def list():
-    quizes = db_query_rows("SELECT * FROM quiz")
+# @quizes.route('/list', methods=['POST', 'GET'])
+# def list():
+#     quizes = db_query_rows("SELECT * FROM quiz")
 
-    for quiz in quizes:
-        quiz_id = quiz[0]
-        questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [quiz_id])
-        answers = db_query_rows("SELECT * FROM answer WHERE question_quiz_id=%s ORDER BY RAND()", [quiz_id])
+#     for quiz in quizes:
+#         quiz_id = quiz[0]
+#         questions = db_query_rows("SELECT * FROM question WHERE quiz_id=%s", [quiz_id])
+#         answers = db_query_rows("SELECT * FROM answer WHERE question_quiz_id=%s ORDER BY RAND()", [quiz_id])
 
 
-    if request.method == 'GET':
-        form_list = []
-        for i in range(len(quizes)):
-            form = RadioForm()
-            for answer in quizes[i][6]:
-                form.answer.choices.append((answer['correct'], answer['answer'], answer['id']))
-            # form.answers.choices = quizes[i][6]
-            form.answer.id += ('-' + str(i))
+#     if request.method == 'GET':
+#         form_list = []
+#         for i in range(len(quizes)):
+#             form = RadioForm()
+#             for answer in quizes[i][6]:
+#                 form.answer.choices.append((answer['correct'], answer['answer'], answer['id']))
+#             # form.answers.choices = quizes[i][6]
+#             form.answer.id += ('-' + str(i))
 
-            form_list.append(form)
-        return render_template('user_dashboard_quiz.html', quizes=quizes, form_list=form_list)
+#             form_list.append(form)
+#         return render_template('user_dashboard_quiz.html', quizes=quizes, form_list=form_list)
 
-    if request.method == 'POST':
-        form_answer, form_label, form_answer_id, form_quiz_title = eval(request.form['answer'])
-        user_id = session['id']
-        with UserHasAnswer() as uq:
-            if not uq.insert_into(user_id, form_answer_id):
-                flash(f'you already have enter that answer for quiz: {form_quiz_title}', category='info')
-            else:
-                flash('Answer submited', category='info')
-        if form_answer:
-            flash(f'You have entered the right answer: {form_label} for quiz: {form_quiz_title}', category='success')
-        else:
-            flash(f'You have entered the wrong answer: {form_label} for quiz: {form_quiz_title}', category='danger')
-        return redirect(url_for('user_dashboard'))
+#     if request.method == 'POST':
+#         form_answer, form_label, form_answer_id, form_quiz_title = eval(request.form['answer'])
+#         user_id = session['id']
+#         with UserHasAnswer() as uq:
+#             if not uq.insert_into(user_id, form_answer_id):
+#                 flash(f'you already have enter that answer for quiz: {form_quiz_title}', category='info')
+#             else:
+#                 flash('Answer submited', category='info')
+#         if form_answer:
+#             flash(f'You have entered the right answer: {form_label} for quiz: {form_quiz_title}', category='success')
+#         else:
+#             flash(f'You have entered the wrong answer: {form_label} for quiz: {form_quiz_title}', category='danger')
+#         return redirect(url_for('user_dashboard'))

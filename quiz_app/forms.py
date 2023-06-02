@@ -37,8 +37,6 @@ class RegistrationForm(FlaskForm):
 
 class AnswerForm(FlaskForm):
     answer = StringField('Answer')
-    comment = TextAreaField('Comment')
-    correct = BooleanField('Correct')
     submit = SubmitField('Submit answer')
 
 class QuestionForm(FlaskForm):

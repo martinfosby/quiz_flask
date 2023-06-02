@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}
+user has answer home
+{% endblock %}
+{% block content %}
+    {% include "flash_messages.html" %}
+
+    <div class="container m-3">
+        {% for quiz in quizes %}
+            <div class="card m-2">
+                <div class="card-header">{{quiz.title}}</div>
+                {% for question in questions %}
+                    <div class="card-body">
+                        <h5 class="card-title">quiz id:{{question.answer_question_quiz_id}}</h5>
+                        {{ question }}
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

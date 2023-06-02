@@ -24,19 +24,6 @@ create quiz
         <div class="mb-3 form-check">
             {{ form.active(class="form-check-input") }} {{ form.active.label(class="form-check-label") }} 
         </div>
-        <div class="mb-3">
-            {{ form.comment.label(class="form-label") }}
-            {{ form.comment(class="form-control") }} 
-        </div>
-        <!-- <div id="formContainer">
-            <button class="btn btn-secondary" onclick="createForm()">Add Question</button>
-        </div> -->
-
-        {#
-        <div class="mb-3">
-            <button type="submit" class="btn btn-secondary" formaction="{{ url_for('quizes.create_quiz', action='add') }}">Add question</button>
-        </div>
-            #}
         {{ form.submit(class="btn btn-primary")}}
     </fieldset>
     </form>

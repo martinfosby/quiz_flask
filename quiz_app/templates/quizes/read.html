@@ -3,30 +3,19 @@
 read quiz
 {% endblock %}
 {% block content %}
-    <div id="flash-messages">
-        {% with messages = get_flashed_messages(with_categories=true) %}  
-            {% if messages %}  
-                {% for category, message in messages %}  
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-                {% endfor %}  
-            {% endif %}  
-        {% endwith %}  
-    </div>
-    {% if quiz %}
+{% include 'flash_messages.html' %}
+    {% if quiz and quiz.active %}
     <div class="quiz">
         <h1>{{ quiz['title'] }}</h1>
-        <p>comment: {{ quiz['comment'] }}</p>
         {% if is_admin %}
-            <p>active: {{ quiz['active'] }}</p>
             <a href="{{ url_for('quizes.update_quiz', id=quiz['id']) }}" class="btn btn-primary">update quiz</a>
             <a href="{{ url_for('questions.create_question', quiz_id=quiz['id']) }}" class="btn btn-primary">create question</a>
+            <a href="{{ url_for('quizes.review', id=quiz['id']) }}" class="btn btn-primary">review quiz</a>
             <a href="{{ url_for('quizes.delete_quiz', id=quiz['id']) }}" class="btn btn-danger">delete quiz</a>
         {% endif %}
         {% if questions %}
             <div class="container">
-                {% for question in questions %}
+                {% for question in questions if not is_answered.get(question['id'])%}
                     {% set question_index = loop.index %}
                     <div class="card m-3">
                         <div class="card-body">
@@ -74,14 +63,14 @@ read quiz
                                                 {#
                                                     #}
                                     {% endif %}
-                                    {{ forms[question['id']].submit(class="btn btn-primary", id="submit-" + question_index|string) }}
+                                    {{ forms[question['id']].submit(class="btn btn-primary m-3", id="submit-" + question_index|string) }}
                                 </form>
                             {% endif %}
+                            <a href="{{ url_for('questions.read_question', id=question['id']) }}" class="btn btn-primary mr-2" >read question</a>
                             {% if is_admin %}
-                                <p>{{ question['category'] }}</p>
-                                <a href="{{ url_for('questions.update_question', id=question['id']) }}" class="btn btn-primary">update question</a>
-                                <a href="{{ url_for('answers.create_answer', quiz_id=quiz['id'], question_id=question['id']) }}" class="btn btn-primary">add answer</a>
-                                <a href="{{ url_for('questions.delete_question', id=question['id']) }}" class="btn btn-danger">delete question</a>
+                                <a href="{{ url_for('questions.update_question', id=question['id']) }}" class="btn btn-primary mr-2">update question</a>
+                                <a href="{{ url_for('answers.create_answer', quiz_id=quiz['id'], question_id=question['id']) }}" class="btn btn-primary mr-2">add answer</a>
+                                <a href="{{ url_for('questions.delete_question', id=question['id']) }}" class="btn btn-danger mr-2">delete question</a>
                             {% endif %}
 
                         </div>

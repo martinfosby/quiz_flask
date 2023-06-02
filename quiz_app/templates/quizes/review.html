@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}
+quiz review
+{% endblock %}
+{% block content %}
+    {% include "flash_messages.html" %}
+    <h1>{{ quiz.title }} review</h1>
+
+    {% for question_id, answers in users_answers.items() %}
+        <div class="card m-3">
+            <div class="card-body">
+                <h2>{{ users_answers[question_id][0].title }}</h2>
+                <h3>{{ users_answers[question_id][0].content }}</h3>
+                {% for answer in answers %}
+                    <div class="row row-black">
+                        <div class="col">user id: {{ answer.user_id }}</div>
+                        <div class="col">username: {{ answer.username }}</div>
+                        <div class="col">answer: {{ answer.answer }}</div>
+                        <div class="col">answer type: {{ answer.answer_type }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+    {#
+    {% for question in questions %}
+        <div class="card m-3">
+            <div class="card-body">
+                <h2>{{ question.title }}</h2>
+                <h3>{{ question.content }}</h3>
+                {% for user_answer in users_answers %}
+                    {% if user_answer.answer_question_id == question.id %}
+                        <p>{{ user_answer }}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+    {% endfor %}
+        #}
+
+
+{% endblock %}

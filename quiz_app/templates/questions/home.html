@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}
+questions
+{% endblock %}
+{% block content %}
+    {% include "flash_messages.html" %}
+    {% if questions %}
+        {% for question in questions %}
+            <div class="card text-white bg-dark mb-3">
+                <h2 class="card-header">
+                    {{ question.title }}
+                </h2>
+                <div class="card-body">
+                    <h3 class="card-title">{{ question.content }}</h3>
+                    <p>{{ question.answer_type }}</p>
+                    <p>{{ question.category }}</p>
+                    <a href="{{ url_for('questions.delete_question', id=question['id']) }}" class="btn btn-primary">delete</a>
+                    <a href="{{ url_for('questions.update_question', id=question['id']) }}" class="btn btn-primary">update</a>
+                    <a href="{{ url_for('quizes.read_quiz', id=question['quiz_id']) }}" class="btn btn-primary">go to quiz</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

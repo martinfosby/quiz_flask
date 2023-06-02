@@ -3,17 +3,8 @@
 Quizes home
 {% endblock %}
 {% block content %}
-    <div id="flash-messages">
-        {% with messages = get_flashed_messages(with_categories=true) %}  
-            {% if messages %}  
-                {% for category, message in messages %}  
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-                {% endfor %}  
-            {% endif %}  
-        {% endwith %}  
-    </div>
+    {% include "flash_messages.html" %}
+
     <h1>Quizes</h1>
     {% if is_admin %}
     <div class="card m-3" id="create-quiz">
@@ -21,19 +12,21 @@ Quizes home
     </div>
     {% endif %}
 
-    {% for quiz in quizes %}
+    {% for quiz in quizes if quiz.active %}
         <div class="card m-3">
             <div class="card-body">
                 <h5 class="card-title">{{ quiz.title }}</h5>
                 <p class="card-text">{{ quiz.comment }}</p>
-                <a href="{{ url_for('quizes.read_quiz', id=quiz.id) }}" class="btn btn-primary">Read</a>
-                {% if is_admin %}
-                    <a href="{{ url_for('questions.create_question', quiz_id=quiz.id) }}" class="btn btn-primary">Add question</a>
-                    <a href="{{ url_for('quizes.update_quiz', id=quiz.id) }}" class="btn btn-primary">Update</a>
-                    <a href="{{ url_for('quizes.delete_quiz', id=quiz.id) }}" class="btn btn-danger">Delete</a>
-                    {#
-                        #}
-                {% endif %}
+                    <a href="{{ url_for('quizes.read_quiz', id=quiz.id) }}" class="btn btn-primary col">Read</a>
+                    {% if is_admin %}
+                        <a href="{{ url_for('questions.create_question', quiz_id=quiz.id) }}" class="btn btn-primary">Add question</a>
+                        <a href="{{ url_for('quizes.update_quiz', id=quiz.id) }}" class="btn btn-primary">Update</a>
+                        <a href="{{ url_for('quizes.review', id=quiz.id) }}" class="btn btn-primary">Review</a> 
+                        <a href="{{ url_for('quizes.delete_quiz', id=quiz.id) }}" class="btn btn-danger">Delete</a>
+                        {#
+                            #}
+                    {% endif %}
+                </div>
             </div>
         </div>
     {% endfor %}

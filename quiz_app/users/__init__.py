@@ -100,7 +100,7 @@ def login_user_type():
             flash(f'Invalid user type { form.usertype.data}', category='error')
             return redirect(url_for('users.login_user_type'))
     else:
-        return render_template('user_type.html', form=form)
+        return render_template('users/user_type.html', form=form)
 
 
 @users.route('/login', methods=['GET', 'POST'])

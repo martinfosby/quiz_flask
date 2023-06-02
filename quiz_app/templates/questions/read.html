@@ -3,36 +3,50 @@
 update question
 {% endblock %}
 {% block content %}
-    <div id="flash-messages">
-        {% with messages = get_flashed_messages(with_categories=true) %}  
-            {% if messages %}  
-                {% for category, message in messages %}  
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-                {% endfor %}  
-            {% endif %}  
-        {% endwith %}  
-    </div>
+    {% include "flash_messages.html" %}
     {% if question %}
-    <div class="question-read">
-        <h1>{{ question.title }}</h1>
-        <p>{{ question.content }}</p>
-        <p>{{ question.answer_type }}</p>
-        <p>{{ question.category }}</p>
-        <a href="{{ url_for('questions.delete', question_id=question['id']) }}">delete</a>
-        <a href="{{ url_for('questions.update', question_id=question['id']) }}">update</a>
-    </div>
-    {% elif questions %}
-        {% for question in questions %}
-            <div class="question-read">
+        <div class="card m-3">
+            <div class="card-body">
                 <h1>{{ question.title }}</h1>
-                <p>{{ question.content }}</p>
-                <p>{{ question.answer_type }}</p>
-                <p>{{ question.category }}</p>
-                <a href="{{ url_for('questions.delete', question_id=question['id']) }}">delete</a>
-                <a href="{{ url_for('questions.update', question_id=question['id']) }}">update</a>
+                <h2>{{ question.content }}</h2>
+                {% if answers %}
+                    <form action="" method="post">
+                        {{ form.csrf_token }}
+                        {% if question['answer_type'] == 'single' %}
+                            <input type="hidden" name="type" value="single">
+                            {% for choice in form.answer %}
+                                <div class="form-check">
+                                    {{ choice(class="form-check-input" , id="answer-" + loop.index|string) }}
+                                    {{ choice.label(class="form-check-label", for="answer-" + loop.index|string) }}
+                                </div>
+                            {% endfor %}
+                        {% elif question['answer_type'] == 'multiple' %}
+                            <input type="hidden" name="type" value="multiple">
+                            {% for choice in form.answer %}
+                                <div class="form-check">
+                                    {{ choice(class="form-check-input" , id="answer-" + loop.index|string) }}
+                                    {{ choice.label(class="form-check-label", for="answer-" + loop.index|string) }}
+                                </div>
+                            {% endfor %}
+                        {% elif question['answer_type'] == 'essay' %}
+                            <input type="hidden" name="type" value="essay">
+                            {% for text_box in form.answer.entries %}
+                                <div class="m-3">
+                                    {{ text_box.form.id() }}
+                                    {{ text_box.form.text(class="form-control mb-3") }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        {{ form.submit(class="btn btn-primary m-3", id="submit-" + question_index|string) }}
+                    </form>
+                {% endif %}
+                <a href="{{ url_for('questions.read_question', id=question['id']) }}" class="btn btn-primary mr-2" >read next question</a>
+                {% if is_admin %}
+                    <a href="{{ url_for('questions.update_question', id=question['id']) }}" class="btn btn-primary mr-2">update question</a>
+                    <a href="{{ url_for('answers.create_answer', question_id=question['id']) }}" class="btn btn-primary mr-2">add answer</a>
+                    <a href="{{ url_for('questions.delete_question', id=question['id']) }}" class="btn btn-danger mr-2">delete question</a>
+                {% endif %}
             </div>
-        {% endfor %}
+        </div>
     {% endif %}
 {% endblock %}

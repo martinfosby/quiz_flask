@@ -20,7 +20,7 @@ def db_get_connection():
 def db_query_rows(sql, vars=None):
     try:
         conn = db_get_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(dictionary=True, prepared=True)
         cursor.execute(sql, vars)
         row = cursor.fetchall()
         cursor.close()
@@ -35,7 +35,7 @@ def db_query_rows(sql, vars=None):
 def db_query_single(sql, vars=None):
     try:
         conn = db_get_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(dictionary=True, prepared=True)
         cursor.execute(sql, vars)
         row = cursor.fetchone()
         cursor.close()
@@ -49,12 +49,13 @@ def db_query_single(sql, vars=None):
 def db_exec(sql, *args, **kargs):
     try:
         conn = db_get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(prepared=True)
         cursor.execute(sql, *args, **kargs)
         conn.commit()
+        last_id = cursor.lastrowid
         cursor.close()
         conn.close()
-        return cursor.lastrowid
+        return last_id
     except Error as e:
         print(e)
         conn.rollback()
@@ -63,7 +64,7 @@ def db_exec(sql, *args, **kargs):
 def db_exec_many(sql, vars=None):
     try:
         conn = db_get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(prepared=True)
         cursor.executemany(sql, vars)
         conn.commit()
         cursor.close()

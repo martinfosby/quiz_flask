@@ -3,16 +3,32 @@
 user has answer home
 {% endblock %}
 {% block content %}
-    <div id="flash-messages">
-        {% with messages = get_flashed_messages(with_categories=true) %}  
-            {% if messages %}  
-                {% for category, message in messages %}  
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-                {% endfor %}  
-            {% endif %}  
-        {% endwith %}  
+    {% include "flash_messages.html" %}
+
+    <div class="container m-3">
+        <h1>user has answer home</h1>
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>user id</th>
+                    <th>answer id</th>
+                    <th>question id</th>
+                    <th>quiz id</th>
+                    <th>essay</th>
+                </tr>
+            </thead>
+            {% for user_answer in users_answers %}
+                <tbody>
+                    <tr>
+                        <td>{{ user_answer.user_id }}</td>
+                        <td>{{ user_answer.answer_id}}</td>
+                        <td>{{ user_answer.answer_question_id}}</td>
+                        <td>{{ user_answer.answer_question_quiz_id}}</td>
+                        <td>{{ user_answer.essay}}</td>
+                    </tr>
+                </tbody>
+            {% endfor %}
+        </table>
     </div>
-    
+
 {% endblock %}

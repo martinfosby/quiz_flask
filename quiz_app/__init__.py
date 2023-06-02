@@ -5,13 +5,18 @@ from .users import users
 from .quizes import quizes
 from .questions import questions
 from .answers import answers
-from quiz_app.utils import get_user
+from .user_has_quiz import user_has_quiz
+from .user_has_question import user_has_question
+from .user_has_answer import user_has_answer
 
 app = Flask(__name__)
 app.register_blueprint(users)
 app.register_blueprint(questions)
 app.register_blueprint(quizes)
 app.register_blueprint(answers)
+app.register_blueprint(user_has_quiz)
+app.register_blueprint(user_has_question)
+app.register_blueprint(user_has_answer)
 
 app.config['SECRET_KEY'] = 'my_secret_key'
 csrf = CSRFProtect(app)

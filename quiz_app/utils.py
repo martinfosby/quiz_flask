@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import session, redirect, request, flash, url_for
+from flask import session, redirect, request, flash, url_for, abort
 from .db import *
 
 
@@ -9,6 +9,7 @@ def login_required(f):
         # Check if the user is logged in
         if 'id' not in session:
             # User is not logged in, redirect to login page
+            # abort(403)
             flash('You must be logged in to access this page', category='error')
             return redirect(url_for('users.login'))
 
@@ -22,6 +23,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         # Check if the user is logged in
         if not check_admin():
+            # abort(403)
             flash('You must be admin to access this page', category='error')
             return redirect(url_for('home'))
 
