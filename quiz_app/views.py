@@ -49,7 +49,7 @@ def home():
         if user.get('is_admin'):
             return render_template('home.html')
         else:
-            return redirect(url_for('quizes'))
+            return redirect(url_for('quizes.home'))
     else:
         return redirect(url_for('users.login_user_type'))
 
